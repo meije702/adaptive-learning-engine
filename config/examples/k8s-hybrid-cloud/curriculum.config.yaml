@@ -1,0 +1,471 @@
+meta:
+  id: "k8s-hybrid-cloud"
+  name: "Kubernetes & Hybrid Cloud"
+  version: "1.0.0"
+  description: "Van serverless specialist naar K8s & hybrid cloud engineer"
+  target_certification: "CKA"
+  estimated_weeks: 16
+  language: "nl"
+
+bridge:
+  from:
+    label: "AWS serverless specialist"
+    concepts: ["Lambda", "API Gateway", "CDK", "DynamoDB", "EventBridge"]
+    proficiency: "expert"
+  to:
+    label: "K8s & hybrid cloud engineer"
+    concepts: ["Kubernetes", "containers", "hybrid cloud", "CKA"]
+    proficiency: "advanced"
+
+levels:
+  - id: 0
+    label: "Onbekend"
+    description: "Nog niet behandeld"
+    assessment_type: null
+  - id: 1
+    label: "Conceptueel"
+    description: "Kan uitleggen wat het is en waarom het bestaat"
+    assessment_type: "theory"
+  - id: 2
+    label: "Begrip"
+    description: "Kan relateren aan bestaande kennis"
+    assessment_type: "comparison"
+  - id: 3
+    label: "Toepassing"
+    description: "Kan configureren met begeleiding"
+    assessment_type: "guided_practice"
+  - id: 4
+    label: "Zelfstandig"
+    description: "Kan zelfstandig opzetten en troubleshooten"
+    assessment_type: "open_scenario"
+  - id: 5
+    label: "Expert"
+    description: "Kan in productie ontwerpen en aan anderen uitleggen"
+    assessment_type: "architecture_challenge"
+
+phases:
+  - id: 1
+    name: "Fundamenten"
+    description: "De basisconcepten en architectuur"
+    bridge:
+      from:
+        label: "Kent cloud-native concepten in AWS"
+        concepts: ["managed services", "serverless", "IaC"]
+        proficiency: "expert"
+      to:
+        label: "Begrijpt container-orchestratie fundamenten"
+        concepts: ["containers", "pods", "control plane", "services"]
+        proficiency: "intermediate"
+
+  - id: 2
+    name: "Productie-skills"
+    description: "Wat je nodig hebt om workloads in productie te draaien"
+    bridge:
+      from:
+        label: "Begrijpt K8s fundamenten"
+        concepts: ["pods", "deployments", "services"]
+        proficiency: "intermediate"
+      to:
+        label: "Kan workloads veilig in productie draaien"
+        concepts: ["RBAC", "storage", "ingress", "helm"]
+        proficiency: "advanced"
+
+  - id: 3
+    name: "Operations"
+    description: "Beheer, monitoring, en troubleshooting"
+    bridge:
+      from:
+        label: "Kan workloads deployen"
+        concepts: ["helm", "RBAC", "ingress"]
+        proficiency: "advanced"
+      to:
+        label: "Kan een cluster beheren en problemen oplossen"
+        concepts: ["monitoring", "GitOps", "upgrades", "debugging"]
+        proficiency: "advanced"
+
+  - id: 4
+    name: "Hybrid & Certificering"
+    description: "Multi-cloud architectuur en examenvoorbereiding"
+    bridge:
+      from:
+        label: "Kan single-cluster K8s beheren"
+        concepts: ["cluster management", "troubleshooting"]
+        proficiency: "advanced"
+      to:
+        label: "Kan hybrid/multi-cloud architecturen ontwerpen en is CKA-ready"
+        concepts: ["multi-cluster", "hybrid cloud", "IaC", "CKA"]
+        proficiency: "advanced"
+
+domains:
+  - id: "container-fundamentals"
+    name: "Container fundamentals"
+    phase: 1
+    week: 1
+    tags: ["docker", "oci", "runtime", "images", "layers"]
+    prerequisites: []
+    bridge:
+      from:
+        label: "Lambda functions"
+        concepts: ["function as deployment unit", "managed runtime"]
+        proficiency: "expert"
+      to:
+        label: "Containers & Pods"
+        concepts: ["OCI images", "container runtime", "pod lifecycle"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Container vs VM"
+      - "OCI image spec"
+      - "Layers en caching"
+      - "Container runtime (containerd, CRI-O)"
+    resources: []
+
+  - id: "k8s-architecture"
+    name: "K8s architecture"
+    phase: 1
+    week: 2
+    tags: ["control-plane", "etcd", "kubelet", "api-server"]
+    prerequisites: ["container-fundamentals"]
+    bridge:
+      from:
+        label: "AWS account met managed services"
+        concepts: ["control plane analogy", "managed orchestration"]
+        proficiency: "expert"
+      to:
+        label: "K8s control plane"
+        concepts: ["API server", "etcd", "scheduler", "controller manager"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Control plane componenten"
+      - "etcd als state store"
+      - "kubelet en container runtime"
+      - "kube-proxy en networking basis"
+    resources: []
+
+  - id: "workloads"
+    name: "Workloads & scheduling"
+    phase: 1
+    week: 3
+    tags: ["pods", "deployments", "replicasets", "statefulsets", "daemonsets", "jobs"]
+    prerequisites: ["k8s-architecture"]
+    bridge:
+      from:
+        label: "Auto Scaling Groups"
+        concepts: ["desired count", "scaling policies", "health checks"]
+        proficiency: "expert"
+      to:
+        label: "K8s workload resources"
+        concepts: ["Deployments", "ReplicaSets", "StatefulSets", "DaemonSets"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Pod lifecycle"
+      - "Deployment strategieën"
+      - "StatefulSet vs Deployment"
+      - "Jobs en CronJobs"
+    resources: []
+
+  - id: "networking-basis"
+    name: "Networking basis"
+    phase: 1
+    week: 4
+    tags: ["services", "clusterip", "nodeport", "loadbalancer", "dns", "cni"]
+    prerequisites: ["workloads"]
+    bridge:
+      from:
+        label: "ALB + API Gateway"
+        concepts: ["load balancing", "routing rules", "target groups"]
+        proficiency: "expert"
+      to:
+        label: "K8s Services & DNS"
+        concepts: ["ClusterIP", "NodePort", "LoadBalancer", "CoreDNS"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Service types"
+      - "kube-dns / CoreDNS"
+      - "CNI plugins"
+      - "Network model (flat network)"
+    resources: []
+
+  - id: "storage"
+    name: "Storage"
+    phase: 2
+    week: 5
+    tags: ["volumes", "pv", "pvc", "storageclasses", "csi"]
+    prerequisites: ["workloads"]
+    bridge:
+      from:
+        label: "EBS / EFS"
+        concepts: ["block storage", "file storage", "mount points"]
+        proficiency: "advanced"
+      to:
+        label: "K8s persistent storage"
+        concepts: ["PV", "PVC", "StorageClass", "CSI"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Volume types"
+      - "PV/PVC lifecycle"
+      - "StorageClasses en dynamic provisioning"
+      - "CSI drivers"
+    resources: []
+
+  - id: "security"
+    name: "Security & RBAC"
+    phase: 2
+    week: 6
+    tags: ["rbac", "serviceaccounts", "networkpolicies", "podsecurity", "secrets"]
+    prerequisites: ["networking-basis"]
+    bridge:
+      from:
+        label: "IAM policies & roles"
+        concepts: ["policies", "roles", "assume role", "least privilege"]
+        proficiency: "expert"
+      to:
+        label: "K8s RBAC & security"
+        concepts: ["Roles", "ClusterRoles", "Bindings", "ServiceAccounts"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "RBAC model (Role, ClusterRole, Binding)"
+      - "ServiceAccounts"
+      - "NetworkPolicies"
+      - "Pod Security Standards"
+    resources: []
+
+  - id: "configuration"
+    name: "Config & packaging"
+    phase: 2
+    week: 7
+    tags: ["configmaps", "secrets", "helm", "kustomize"]
+    prerequisites: ["workloads", "security"]
+    bridge:
+      from:
+        label: "SSM Parameter Store + CDK Constructs"
+        concepts: ["config separation", "reusable abstractions", "environment overrides"]
+        proficiency: "expert"
+      to:
+        label: "ConfigMaps + Helm Charts"
+        concepts: ["ConfigMaps", "Secrets", "Helm", "Kustomize"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "ConfigMaps vs Secrets"
+      - "Helm chart structuur"
+      - "Kustomize overlays"
+      - "GitOps-ready configuratie"
+    resources: []
+
+  - id: "ingress-traffic"
+    name: "Ingress & traffic"
+    phase: 2
+    week: 8
+    tags: ["ingress", "gateway-api", "tls", "traffic-routing"]
+    prerequisites: ["networking-basis", "security"]
+    bridge:
+      from:
+        label: "CloudFront + API Gateway routing"
+        concepts: ["edge routing", "path-based routing", "TLS termination"]
+        proficiency: "expert"
+      to:
+        label: "Ingress controllers + Gateway API"
+        concepts: ["Ingress", "IngressClass", "Gateway API", "TLS"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Ingress controllers (nginx, traefik)"
+      - "Gateway API (de opvolger)"
+      - "TLS termination"
+      - "Path en host-based routing"
+    resources: []
+
+  - id: "observability"
+    name: "Observability"
+    phase: 3
+    week: 9
+    tags: ["prometheus", "grafana", "logging", "fluentd", "loki", "tracing"]
+    prerequisites: ["workloads", "networking-basis"]
+    bridge:
+      from:
+        label: "CloudWatch metrics + logs"
+        concepts: ["metrics", "log groups", "dashboards", "alarms"]
+        proficiency: "advanced"
+      to:
+        label: "Prometheus + Grafana stack"
+        concepts: ["scraping", "PromQL", "Grafana", "Loki"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Prometheus scraping model"
+      - "Grafana dashboards"
+      - "Log aggregatie (Fluentd/Loki)"
+      - "Distributed tracing basics"
+    resources: []
+
+  - id: "cicd-gitops"
+    name: "CI/CD & GitOps"
+    phase: 3
+    week: 10
+    tags: ["argocd", "flux", "github-actions", "gitops"]
+    prerequisites: ["configuration"]
+    bridge:
+      from:
+        label: "CDK Pipelines + GitHub Actions"
+        concepts: ["push-based deployment", "pipeline stages", "approval gates"]
+        proficiency: "expert"
+      to:
+        label: "ArgoCD / Flux"
+        concepts: ["pull-based GitOps", "sync policies", "app-of-apps"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "GitOps principes"
+      - "ArgoCD setup en sync"
+      - "Flux vs ArgoCD"
+      - "Integratie met bestaande CI (GitHub Actions)"
+    resources: []
+
+  - id: "cluster-mgmt"
+    name: "Cluster management"
+    phase: 3
+    week: 11
+    tags: ["upgrades", "backup", "etcd", "node-management"]
+    prerequisites: ["k8s-architecture", "security"]
+    bridge:
+      from:
+        label: "AWS managed upgrades"
+        concepts: ["managed patching", "blue-green infra", "automated rollback"]
+        proficiency: "advanced"
+      to:
+        label: "Self-managed cluster lifecycle"
+        concepts: ["kubeadm upgrade", "etcd backup", "node drain", "certificates"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Cluster upgrade strategie"
+      - "etcd backup en restore"
+      - "Node drain en cordon"
+      - "Certificate management"
+    resources: []
+
+  - id: "troubleshooting"
+    name: "Troubleshooting"
+    phase: 3
+    week: 12
+    tags: ["debugging", "kubectl", "logs", "events", "resource-constraints"]
+    prerequisites: ["workloads", "networking-basis", "observability"]
+    bridge:
+      from:
+        label: "CloudWatch Logs + X-Ray"
+        concepts: ["log analysis", "trace correlation", "metric alarms"]
+        proficiency: "advanced"
+      to:
+        label: "kubectl debug workflow"
+        concepts: ["kubectl logs", "describe", "events", "ephemeral containers"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "kubectl debug workflow"
+      - "Pod failure modes"
+      - "Networking troubleshooting"
+      - "Resource constraints en OOM"
+    resources: []
+
+  - id: "multi-cloud"
+    name: "Multi-cloud K8s"
+    phase: 4
+    week: 13
+    tags: ["eks", "aks", "gke", "managed-k8s"]
+    prerequisites: ["cluster-mgmt"]
+    bridge:
+      from:
+        label: "EKS (bekend)"
+        concepts: ["managed node groups", "IRSA", "EKS add-ons"]
+        proficiency: "intermediate"
+      to:
+        label: "AKS en GKE"
+        concepts: ["AKS managed identity", "GKE Autopilot", "cross-cloud patterns"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "EKS vs AKS vs GKE vergelijking"
+      - "Cloud-specifieke integraties"
+      - "Vendor lock-in vs portabiliteit"
+      - "Cost optimization per cloud"
+    resources: []
+
+  - id: "hybrid-arch"
+    name: "Hybrid architecture"
+    phase: 4
+    week: 14
+    tags: ["multi-cluster", "federation", "service-mesh"]
+    prerequisites: ["multi-cloud", "networking-basis"]
+    bridge:
+      from:
+        label: "Multi-account AWS strategie"
+        concepts: ["AWS Organizations", "cross-account roles", "shared services"]
+        proficiency: "advanced"
+      to:
+        label: "Multi-cluster K8s"
+        concepts: ["cluster federation", "service mesh", "cross-cluster networking"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Multi-cluster patterns"
+      - "Service mesh basics (Istio/Linkerd)"
+      - "Federation concepts"
+      - "Hybrid connectivity"
+    resources: []
+
+  - id: "iac-k8s"
+    name: "IaC for K8s"
+    phase: 4
+    week: 15
+    tags: ["terraform", "pulumi", "crossplane"]
+    prerequisites: ["cluster-mgmt", "multi-cloud"]
+    bridge:
+      from:
+        label: "AWS CDK"
+        concepts: ["constructs", "stacks", "synthesis", "TypeScript IaC"]
+        proficiency: "expert"
+      to:
+        label: "Terraform / Pulumi / Crossplane"
+        concepts: ["HCL", "Pulumi TypeScript", "Crossplane XRDs"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Terraform voor cluster provisioning"
+      - "Pulumi (TypeScript, dichter bij CDK)"
+      - "Crossplane (K8s-native IaC)"
+      - "State management vergelijking"
+    resources: []
+
+  - id: "cka-prep"
+    name: "CKA exam prep"
+    phase: 4
+    week: 16
+    tags: ["cka", "exam", "time-management", "kubectl-mastery"]
+    prerequisites: ["troubleshooting", "cluster-mgmt", "security"]
+    bridge:
+      from:
+        label: "Brede K8s kennis"
+        concepts: ["all previous domains"]
+        proficiency: "advanced"
+      to:
+        label: "CKA exam ready"
+        concepts: ["speed", "accuracy", "kubectl mastery", "exam strategy"]
+        proficiency: "advanced"
+    key_concepts:
+      - "Exam environment en regels"
+      - "kubectl productivity (aliases, completions)"
+      - "Tijdmanagement per vraagtype"
+      - "Top failure areas"
+    resources: []
+
+stretch:
+  frequency: 4
+  domains:
+    - id: "service-mesh-deep-dive"
+      name: "Service mesh deep dive"
+      tags: ["istio", "linkerd", "envoy"]
+      bridge:
+        from:
+          label: "API Gateway patterns"
+          concepts: ["central routing", "rate limiting", "auth at edge"]
+          proficiency: "expert"
+        to:
+          label: "Sidecar proxy mesh"
+          concepts: ["sidecar pattern", "mTLS", "traffic splitting"]
+          proficiency: "beginner"
+      key_concepts:
+        - "Sidecar pattern"
+        - "mTLS automatisch"
+        - "Traffic splitting"
+        - "Observability via mesh"

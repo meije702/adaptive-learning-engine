@@ -1,0 +1,51 @@
+server:
+  port: 8000
+  base_url: "https://learn.deno.dev"
+
+auth:
+  type: "bearer"
+  # Token via environment variable: ALE_AUTH_TOKEN
+
+storage:
+  type: "deno-kv"
+
+ai:
+  provider: "anthropic"
+  model: "claude-sonnet-4-20250514"
+  system_prompt_template: |
+    Je bent een {curriculum.meta.name} trainer voor een ervaren engineer.
+    Achtergrond van de leerling: {learner.background.summary}
+    Communiceer in het {learner.language}.
+    Technische termen in het Engels.
+    Toon: {learner.preferences.tone}.
+    {if learner.preferences.show_bridges}
+    Gebruik actief analogieën tussen de bestaande kennis en nieuwe concepten.
+    {/if}
+
+mcp:
+  transport: "sse"
+  path: "/mcp"
+
+retention:
+  initial_interval_days: 1
+  multiplier_correct: 2.5
+  multiplier_partial: 1.2
+  multiplier_incorrect: 0.0
+  max_interval_days: 60
+
+content:
+  max_length:
+    theory: 600
+    practice: 400
+    assessment: 500
+    retention_question: 50
+    feedback: 300
+  assessment:
+    question_types: ["scenario", "open", "multiple_choice", "troubleshoot"]
+    options_count: 4
+    passing_score: "partial"
+
+export:
+  enabled: true
+  format: "json"
+  schedule: "weekly"

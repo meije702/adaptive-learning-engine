@@ -1,0 +1,59 @@
+profile:
+  name: "Sander"
+  language: "nl"
+  timezone: "Europe/Amsterdam"
+
+background:
+  summary: "Senior/Lead Engineer, 20+ jaar backend, AWS serverless specialist"
+  technologies:
+    - name: "AWS Lambda"
+      proficiency: "expert"
+    - name: "AWS CDK"
+      proficiency: "expert"
+    - name: "TypeScript"
+      proficiency: "expert"
+    - name: "GitHub Actions"
+      proficiency: "advanced"
+    - name: "API Gateway"
+      proficiency: "expert"
+    - name: "Docker"
+      proficiency: "intermediate"
+
+intake:
+  completed: false
+  completed_at: null
+  result: null
+
+schedule:
+  rest_day: 0                           # 0=zondag
+  active_days: [1, 2, 3, 4, 5, 6]      # ma t/m za
+
+  day_plan:
+    1: "theory"
+    2: "practice_guided"
+    3: "practice_open"
+    4: "practice_troubleshoot"
+    5: "assessment"
+    6: "review"
+
+  generation_time: "22:00"
+
+  assessment_deadline_day: 6
+  assessment_deadline_time: "20:00"
+
+  feedback_available_day: 6
+  feedback_available_time: "22:00"
+
+  retention:
+    enabled: true
+    days: [1, 2, 3, 4, 5, 6]
+    questions_per_day:
+      min: 1
+      max: 3
+
+preferences:
+  content_length: "concise"
+  tone: "collegial"
+  show_bridges: true
+  hints_enabled: true
+  time_tracking: false
