@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fresh-dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd src && /Users/sandermeijerman/.deno/bin/deno task dev"],
+      "port": 5188
+    },
+    {
+      "name": "fresh-prod",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd src && /Users/sandermeijerman/.deno/bin/deno task start"],
+      "port": 8000
+    }
+  ]
+}
