@@ -15,6 +15,21 @@ A self-hosted adaptive learning system consisting of two decoupled components:
 The AI is replaceable. The MCP protocol is the contract. The web app works
 independently.
 
+For a more detailed explanation of the system design, learning model, and
+operational flow, see [docs/SYSTEM.md](./docs/SYSTEM.md).
+
+## Platform components
+
+The platform consists of these core pieces:
+
+- a Fresh web app with dashboard, today view, and REST API routes
+- Deno KV repositories for progress, weeks, days, questions, answers,
+  feedback, and retention
+- an MCP server that exposes the learning data and write operations to an AI
+  coaching agent
+- configuration schemas and an example curriculum for Kubernetes and hybrid
+  cloud
+
 ## Quick start
 
 ```bash
@@ -22,18 +37,57 @@ independently.
 git clone https://github.com/your-username/adaptive-learning-engine.git
 cd adaptive-learning-engine
 
-# Copy and customize config
-cp config/examples/k8s-hybrid-cloud/curriculum.config.yaml config/curriculum.config.yaml
-cp config/examples/k8s-hybrid-cloud/learner.config.yaml config/learner.config.yaml
-cp config/examples/k8s-hybrid-cloud/system.config.yaml config/system.config.yaml
-
-# Edit your configs
-# → curriculum.config.yaml: define what to learn
-# → learner.config.yaml: define who you are and your schedule
-# → system.config.yaml: configure AI provider and parameters
-
-# Run
+# Run the web app with the bundled example configuration
+cd src
 deno task dev
+```
+
+Open `http://localhost:5188`.
+
+The app loads `config/examples/k8s-hybrid-cloud/` by default.
+
+## Use your own configuration
+
+Create a directory containing these three files:
+
+- `curriculum.config.yaml`
+- `learner.config.yaml`
+- `system.config.yaml`
+
+Then point the app to that directory with `ALE_CONFIG_DIR`:
+
+```bash
+cd src
+ALE_CONFIG_DIR=../config/examples/k8s-hybrid-cloud deno task dev
+```
+
+If you want to create a brand new curriculum, copy the example directory first:
+
+```bash
+cp -R config/examples/k8s-hybrid-cloud config/my-curriculum
+cd src
+ALE_CONFIG_DIR=../config/my-curriculum deno task dev
+```
+
+## Development commands
+
+Run all commands from `src/`:
+
+```bash
+# Start the Fresh dev server
+deno task dev
+
+# Validate formatting, linting, and types
+deno task check
+
+# Run tests
+deno task test
+
+# Build the app
+deno task build
+
+# Start the MCP server on stdio
+deno task mcp
 ```
 
 ## Create your own curriculum
@@ -44,7 +98,7 @@ Write three YAML files. No code changes needed.
 - `learner.config.yaml` — your background, schedule, preferences
 - `system.config.yaml` — AI provider, timing, spaced repetition parameters
 
-See `config/examples/` for a complete example (Kubernetes for AWS engineers).
+See `config/examples/` for a complete example.
 
 ## Architecture
 
@@ -56,6 +110,10 @@ Technical decisions are documented as ADRs:
 - [ADR-002: Configuration-first design](./docs/adr/002-configuration-first.md)
 - [ADR-003: Bridge principle & intake](./docs/adr/003-bridge-principle-intake.md)
 
+For more specific and elaborate information about the operational design,
+weekly cycle, coaching behavior, retention model, and intake flow, see
+[docs/SYSTEM.md](./docs/SYSTEM.md).
+
 ## Core concept: everything is a bridge
 
 Every step in the learning process is a transformation from a known state (`from`)
@@ -65,6 +123,9 @@ curriculum, phase, domain, week, day.
 The `from` can be empty. Not everyone has prior knowledge. The system detects this
 and adapts: where an experienced professional learns through analogy, a beginner
 learns through first principles.
+
+Before the weekly cycle begins, the system runs an intake to validate the
+learner's goal, estimate the gap, and advise whether the plan is realistic.
 
 ## Tech stack
 
