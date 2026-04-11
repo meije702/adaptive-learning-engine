@@ -22,6 +22,15 @@ export class KvQuestionRepository implements QuestionRepository {
     return result.value;
   }
 
+  async getByCheckpoint(checkpoint: string): Promise<Question | null> {
+    const result = await this.kv.get<string>([
+      "questions_by_checkpoint",
+      checkpoint,
+    ]);
+    if (!result.value) return null;
+    return this.get(result.value);
+  }
+
   async getPending(): Promise<Question[]> {
     const pending: Question[] = [];
     const iter = this.kv.list<Question>({ prefix: ["questions"] });
@@ -49,6 +58,9 @@ export class KvQuestionRepository implements QuestionRepository {
         ["questions_by_day", input.dayContentId, input.sequence],
         id,
       );
+      if (input.scrimCheckpoint) {
+        atomic.set(["questions_by_checkpoint", input.scrimCheckpoint], id);
+      }
       await atomic.commit();
     }
 

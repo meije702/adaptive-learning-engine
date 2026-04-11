@@ -41,6 +41,8 @@ export interface DayContent {
   domainId: string;
   title: string;
   body: string;
+  /** Scrim SceneDocument JSON. When present, the frontend renders an interactive scene. */
+  sceneDocument?: unknown;
   createdAt: string;
   basedOn?: string[];
 }
@@ -62,6 +64,8 @@ export interface Question {
   hints?: string[];
   maxLevel: number;
   deadline: string;
+  /** Maps this question to a Scrim challenge checkpoint for evaluator bridging. */
+  scrimCheckpoint?: string;
 }
 
 export interface Answer {

@@ -32,6 +32,7 @@ export interface CreateDayContent {
   domainId: string;
   title: string;
   body: string;
+  sceneDocument?: unknown;
   basedOn?: string[];
 }
 
@@ -45,6 +46,7 @@ export interface CreateQuestion {
   hints?: string[];
   maxLevel: number;
   deadline: string;
+  scrimCheckpoint?: string;
 }
 
 export interface CreateAnswer {
@@ -92,6 +94,7 @@ export interface DayRepository {
 export interface QuestionRepository {
   getByDay(dayContentId: string): Promise<Question[]>;
   get(questionId: string): Promise<Question | null>;
+  getByCheckpoint(checkpoint: string): Promise<Question | null>;
   getPending(): Promise<Question[]>;
   create(questions: CreateQuestion[]): Promise<Question[]>;
 }
@@ -120,6 +123,11 @@ export interface RetentionRepository {
   ): Promise<RetentionSchedule>;
 }
 
+export interface InteractionLogRepository {
+  get(dayContentId: string): Promise<unknown | null>;
+  put(dayContentId: string, log: unknown): Promise<void>;
+}
+
 // --- Aggregate ---
 
 export interface Repositories {
@@ -130,4 +138,5 @@ export interface Repositories {
   answers: AnswerRepository;
   feedback: FeedbackRepository;
   retention: RetentionRepository;
+  interactionLogs: InteractionLogRepository;
 }

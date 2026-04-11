@@ -1,5 +1,6 @@
 import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
+import ScrimPlayer from "../islands/ScrimPlayer.tsx";
 
 export default define.page(async function TodayView(ctx) {
   const { repos, config } = ctx.state;
@@ -40,6 +41,11 @@ export default define.page(async function TodayView(ctx) {
 
   const domain = config.curriculum.domains.find((d) => d.id === today.domainId);
 
+  // Load interaction log for Scrim replay
+  const interactionLog = today.sceneDocument
+    ? await repos.interactionLogs.get(today.id)
+    : null;
+
   return (
     <div style="max-width: 960px; margin: 0 auto; padding: 2rem 1rem;">
       <Head>
@@ -56,9 +62,19 @@ export default define.page(async function TodayView(ctx) {
       </p>
 
       {/* Content body */}
-      <section style="padding: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1.5rem; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.75;">
-        {today.body}
-      </section>
+      {today.sceneDocument ? (
+        <section style="margin-bottom: 1.5rem;">
+          <ScrimPlayer
+            sceneDocument={today.sceneDocument}
+            interactionLog={interactionLog ?? undefined}
+            dayContentId={today.id}
+          />
+        </section>
+      ) : (
+        <section style="padding: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1.5rem; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.75;">
+          {today.body}
+        </section>
+      )}
 
       {/* Questions */}
       {questionsWithAnswers.length > 0 && (

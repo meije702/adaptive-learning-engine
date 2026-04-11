@@ -21,5 +21,5 @@ const repos = createRepositories(kv, config.system);
 
 await seedDomains(kv, config.curriculum, config.system);
 
-const server = createMcpServer(repos, config);
+const server = await createMcpServer(repos, config);
 await startMcpStdio(server);

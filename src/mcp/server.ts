@@ -2,6 +2,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import { z } from "zod";
 import type { CreateQuestion, Repositories } from "../db/repositories.ts";
 import type { AppConfig } from "../config/loader.ts";
+import { validateSceneDocument } from "../scrim/validate.ts";
+import { loadLanguageReference } from "../scrim/language_reference.ts";
 
 // deno-lint-ignore no-explicit-any
 type AnyCallback = (...args: any[]) => any;
@@ -10,15 +12,25 @@ function txt(data: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(data) }] };
 }
 
-export function createMcpServer(
+export async function createMcpServer(
   repos: Repositories,
   config: AppConfig,
-): McpServer {
+): Promise<McpServer> {
+  const langRef = await loadLanguageReference();
+
   const server = new McpServer(
     { name: "adaptive-learning-engine", version: "1.0.0" },
     {
       instructions: `MCP server voor het ${config.curriculum.meta.name} leersysteem.
-Gebruik observe-tools om de huidige staat te lezen, generate-tools om content te schrijven, en steer-tools om voortgang bij te werken.`,
+Gebruik observe-tools om de huidige staat te lezen, generate-tools om content te schrijven, en steer-tools om voortgang bij te werken.
+
+## Scrim SceneDocument generatie
+
+Gebruik SceneDocuments voor theory, practice en assessment dagen. Retention quick-recall kan plain text + losse vragen blijven.
+
+Wanneer je een SceneDocument genereert, geef het mee als JSON in het sceneDocument veld van create_day_content. Het body veld moet altijd een korte tekstsamenvatting bevatten (voor zoeken en fallback).
+
+${langRef}`,
     },
   );
 
@@ -75,6 +87,19 @@ Gebruik observe-tools om de huidige staat te lezen, generate-tools om content te
     inputSchema: z.object({}),
   }, (async () => txt(await repos.retention.getDue())) as AnyCallback);
 
+  server.registerTool("get_scene_document", {
+    description: "Haal het SceneDocument en interaction log op voor een dag. Gebruik dit om learner interacties te evalueren en volgende content te informeren.",
+    inputSchema: z.object({ dayContentId: z.string() }),
+  }, (async (args: { dayContentId: string }) => {
+    const day = await repos.days.getById(args.dayContentId);
+    if (!day) return txt({ error: "Day content not found" });
+    const interactionLog = await repos.interactionLogs.get(args.dayContentId);
+    return txt({
+      sceneDocument: day.sceneDocument ?? null,
+      interactionLog: interactionLog ?? null,
+    });
+  }) as AnyCallback);
+
   // ── Generate ───────────────────────────────
 
   server.registerTool("create_week_plan", {
@@ -88,19 +113,30 @@ Gebruik observe-tools om de huidige staat te lezen, generate-tools om content te
   }) as AnyCallback);
 
   server.registerTool("create_day_content", {
-    description: "Genereer en sla de content op voor een specifieke dag",
+    description: "Genereer en sla de content op voor een specifieke dag. Gebruik sceneDocument voor interactieve Scrim-content (theory, practice, assessment). Het body veld is altijd verplicht als tekstsamenvatting.",
     inputSchema: z.object({
       weekNumber: z.number(), dayOfWeek: z.number().min(1).max(6),
       type: z.enum(["theory", "practice_guided", "practice_open", "practice_troubleshoot", "assessment", "review", "retention"]),
       domainId: z.string(), title: z.string(), body: z.string(),
+      sceneDocument: z.unknown().optional(),
       basedOn: z.array(z.string()).optional(),
     }),
-  }, (async (args: { weekNumber: number; dayOfWeek: number; type: string; domainId: string; title: string; body: string; basedOn?: string[] }) => {
-    return txt(await repos.days.create({ ...args, dayOfWeek: args.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6, type: args.type as "theory" }));
+  }, (async (args: { weekNumber: number; dayOfWeek: number; type: string; domainId: string; title: string; body: string; sceneDocument?: unknown; basedOn?: string[] }) => {
+    if (args.sceneDocument) {
+      const validation = validateSceneDocument(args.sceneDocument);
+      if (!validation.valid) {
+        return txt({ error: "Invalid SceneDocument", errors: validation.errors });
+      }
+    }
+    return txt(await repos.days.create({
+      ...args,
+      dayOfWeek: args.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6,
+      type: args.type as "theory",
+    }));
   }) as AnyCallback);
 
   server.registerTool("create_questions", {
-    description: "Voeg vragen toe aan een dagcontent",
+    description: "Voeg vragen toe aan een dagcontent. Gebruik scrimCheckpoint om een vraag te koppelen aan een Scrim challenge checkpoint.",
     inputSchema: z.object({
       dayContentId: z.string(),
       questions: z.array(z.object({
@@ -109,6 +145,7 @@ Gebruik observe-tools om de huidige staat te lezen, generate-tools om content te
         body: z.string(), maxLevel: z.number(), deadline: z.string(),
         options: z.array(z.object({ key: z.enum(["A", "B", "C", "D"]), text: z.string(), isOptimal: z.boolean() })).optional(),
         hints: z.array(z.string()).optional(),
+        scrimCheckpoint: z.string().optional(),
       })),
     }),
   }, (async (args: { dayContentId: string; questions: CreateQuestion[] }) => {

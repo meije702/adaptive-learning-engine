@@ -32,7 +32,16 @@
     "@std/path": "jsr:@std/path@^1",
     "zod": "npm:zod@^3.24",
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1",
-    "@modelcontextprotocol/sdk/": "npm:/@modelcontextprotocol/sdk@^1/"
+    "@modelcontextprotocol/sdk/": "npm:/@modelcontextprotocol/sdk@^1/",
+    "@scrim/core": "../../scrim/packages/core/mod.ts",
+    "@scrim/core/types": "../../scrim/packages/core/src/types/mod.ts",
+    "@scrim/core/runtime": "../../scrim/packages/core/src/runtime/mod.ts",
+    "@scrim/core/context": "../../scrim/packages/core/src/context/mod.ts",
+    "@scrim/schema": "../../scrim/packages/schema/mod.ts",
+    "@scrim/validate": "../../scrim/packages/validate/mod.ts",
+    "@scrim/web": "../../scrim/packages/web/mod.ts",
+    "@scrim/assessment": "../../scrim/packages/assessment/mod.ts",
+    "@preact/signals-core": "npm:@preact/signals-core@^1.8.0"
   },
   "compilerOptions": {
     "lib": [

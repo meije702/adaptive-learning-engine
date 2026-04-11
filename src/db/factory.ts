@@ -7,6 +7,7 @@ import { KvQuestionRepository } from "./kv/questions.ts";
 import { KvAnswerRepository } from "./kv/answers.ts";
 import { KvFeedbackRepository } from "./kv/feedback.ts";
 import { KvRetentionRepository } from "./kv/retention.ts";
+import { KvInteractionLogRepository } from "./kv/interaction_logs.ts";
 
 export function createRepositories(
   kv: Deno.Kv,
@@ -20,5 +21,6 @@ export function createRepositories(
     answers: new KvAnswerRepository(kv),
     feedback: new KvFeedbackRepository(kv),
     retention: new KvRetentionRepository(kv, system.retention),
+    interactionLogs: new KvInteractionLogRepository(kv),
   };
 }
