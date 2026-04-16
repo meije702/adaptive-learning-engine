@@ -1,5 +1,15 @@
 // Entity types from ADR-001
 
+// Gap-analysis shapes live in src/analysis/types.ts (they are computation
+// outputs, not persistent entities). Re-exported here for back-compat with
+// any external code that still imports them from db/types.
+export type {
+  GapAnalysis,
+  GapAnalysisSnapshot,
+  PhaseGap,
+} from "../analysis/types.ts";
+import type { GapAnalysis, GapAnalysisSnapshot } from "../analysis/types.ts";
+
 export interface ProgressEntry {
   level: number;
   assessedAt: string;
@@ -153,7 +163,13 @@ export interface IntakeSession {
   startedAt: string;
   completedAt?: string;
   baselineResults: BaselineResult[];
-  gapAnalysis?: GapAnalysis;
+  /**
+   * A GapAnalysisSnapshot (schemaVersion 1) wrapping the computed summary.
+   * Records written before the snapshot wrapper existed stored the raw
+   * GapAnalysis directly — callers should use `unwrapGapAnalysisSnapshot`
+   * to handle either shape.
+   */
+  gapAnalysis?: GapAnalysisSnapshot | GapAnalysis;
 }
 
 export interface IntakeMessage {
@@ -170,26 +186,4 @@ export interface BaselineResult {
   question: string;
   answer: string;
   suggestedLevel: number;
-}
-
-export interface GapAnalysis {
-  overallFeasible: boolean;
-  estimatedWeeks: number;
-  phaseGaps: PhaseGap[];
-  riskFactors: string[];
-  accelerators: string[];
-  recommendation?: string;
-}
-
-export interface PhaseGap {
-  phaseId: number;
-  phaseName: string;
-  gapSize: "small" | "moderate" | "large" | "very_large";
-  estimatedWeeks: number;
-  strategy:
-    | "analogy"
-    | "first_principles"
-    | "contrast"
-    | "scaffolded"
-    | "accelerated";
 }

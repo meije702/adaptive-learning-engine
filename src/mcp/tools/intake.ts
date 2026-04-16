@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTool, txt } from "../define_tool.ts";
 import type { ToolCtx } from "./context.ts";
+import { toGapAnalysisSnapshot } from "../../analysis/types.ts";
 
 export function register({ server, repos, config }: ToolCtx): void {
   defineTool(
@@ -119,7 +120,7 @@ export function register({ server, repos, config }: ToolCtx): void {
 
       session.status = "completed";
       session.completedAt = new Date().toISOString();
-      session.gapAnalysis = args.gapAnalysis;
+      session.gapAnalysis = toGapAnalysisSnapshot(args.gapAnalysis);
       session.baselineResults = args.baselineResults;
       await repos.intake.putSession(session);
 

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineTool, txt } from "../define_tool.ts";
 import type { ToolCtx } from "./context.ts";
 import { computeGapAnalysis } from "../../analysis/gap.ts";
+import { unwrapGapAnalysisSnapshot } from "../../analysis/types.ts";
 
 export function register({ server, repos, config }: ToolCtx): void {
   defineTool(
@@ -40,7 +41,7 @@ export function register({ server, repos, config }: ToolCtx): void {
       ]);
 
       const currentGap = computeGapAnalysis(progress, config.curriculum);
-      const intakeGap = intakeSession?.gapAnalysis;
+      const intakeGap = unwrapGapAnalysisSnapshot(intakeSession?.gapAnalysis);
 
       const recommendations: string[] = [];
       if (intakeGap) {
