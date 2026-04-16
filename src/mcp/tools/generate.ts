@@ -120,7 +120,7 @@ export function register({ server, repos }: ToolCtx): void {
         score: z.enum(["correct", "partial", "incorrect"]),
         explanation: z.string(),
         suggestedLevel: z.number().min(0).max(5),
-        applyLevel: z.boolean(),
+        levelApplied: z.boolean(),
         improvements: z.array(z.string()),
         feedUp: z.string().optional(),
         feedBack: z.string().optional(),

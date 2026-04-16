@@ -24,7 +24,7 @@ export const handler = define.handlers({
     );
     if (!body || !body.questionId || !body.score || !body.explanation) {
       return badRequest(
-        "Body must include questionId, score, explanation, suggestedLevel, applyLevel, and improvements",
+        "Body must include questionId, score, explanation, suggestedLevel, levelApplied, and improvements",
         `/api/answers/${answerId}/feedback`,
       );
     }

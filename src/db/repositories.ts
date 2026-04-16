@@ -67,7 +67,7 @@ export interface CreateFeedback {
   score: "correct" | "partial" | "incorrect";
   explanation: string;
   suggestedLevel: number;
-  applyLevel: boolean;
+  levelApplied: boolean;
   improvements: string[];
   feedUp?: string;
   feedBack?: string;

@@ -69,7 +69,7 @@ describe("Scenario: Calibration tracking over time", () => {
       score: "correct",
       explanation: "Good",
       suggestedLevel: 3,
-      applyLevel: false,
+      levelApplied: false,
       improvements: [],
     });
 
@@ -83,7 +83,7 @@ describe("Scenario: Calibration tracking over time", () => {
       score: "incorrect",
       explanation: "Wrong",
       suggestedLevel: 1,
-      applyLevel: false,
+      levelApplied: false,
       improvements: ["Review concepts"],
     });
 
@@ -97,7 +97,7 @@ describe("Scenario: Calibration tracking over time", () => {
       score: "correct",
       explanation: "Great",
       suggestedLevel: 3,
-      applyLevel: false,
+      levelApplied: false,
       improvements: [],
     });
 

@@ -305,7 +305,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       assertEquals(byDay.length, 2);
     });
 
-    it("create_feedback without applyLevel does not update progress", async () => {
+    it("create_feedback without levelApplied does not update progress", async () => {
       const day = await repos.days.create({
         weekNumber: 1,
         dayOfWeek: 5,
@@ -336,7 +336,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
           score: "correct",
           explanation: "Good",
           suggestedLevel: 3,
-          applyLevel: false,
+          levelApplied: false,
           improvements: [],
         },
       });
@@ -345,7 +345,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       assertEquals(progress, null);
     });
 
-    it("create_feedback with applyLevel=true updates progress", async () => {
+    it("create_feedback with levelApplied=true updates progress", async () => {
       const day = await repos.days.create({
         weekNumber: 1,
         dayOfWeek: 5,
@@ -376,7 +376,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
           score: "correct",
           explanation: "Well done",
           suggestedLevel: 3,
-          applyLevel: true,
+          levelApplied: true,
           improvements: [],
         },
       });
@@ -417,7 +417,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
           score: "partial",
           explanation: "Decent",
           suggestedLevel: 2,
-          applyLevel: false,
+          levelApplied: false,
           improvements: ["be more specific"],
           feedUp: "Working toward CKA competency",
           feedBack: "Identified the core concept",
@@ -465,7 +465,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
         score: "incorrect",
         explanation: "Wrong",
         suggestedLevel: 1,
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
 
@@ -505,7 +505,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
         score: "correct",
         explanation: "Good",
         suggestedLevel: 3,
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
 
@@ -545,7 +545,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
         score: "correct",
         explanation: "Good",
         suggestedLevel: 3,
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
 
@@ -624,7 +624,7 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
         score: "correct",
         explanation: "Good",
         suggestedLevel: 3,
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
       await client.callTool({

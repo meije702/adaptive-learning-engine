@@ -56,7 +56,7 @@ describe("KvFeedbackRepository", () => {
         score: "correct",
         explanation: "Solid systematic approach",
         suggestedLevel: 3,
-        applyLevel: true,
+        levelApplied: true,
         improvements: ["Consider also checking resource limits"],
       });
 
@@ -87,7 +87,7 @@ describe("KvFeedbackRepository", () => {
         score: "partial",
         explanation: "Good start but incomplete",
         suggestedLevel: 2,
-        applyLevel: false,
+        levelApplied: false,
         improvements: ["Add more detail about networking"],
       });
 
@@ -107,7 +107,7 @@ describe("KvFeedbackRepository", () => {
         score: "correct",
         explanation: "Good work",
         suggestedLevel: 3,
-        applyLevel: true,
+        levelApplied: true,
         improvements: [],
       });
 
@@ -123,7 +123,7 @@ describe("KvFeedbackRepository", () => {
         score: "incorrect",
         explanation: "Missed the point",
         suggestedLevel: 1,
-        applyLevel: false,
+        levelApplied: false,
         improvements: ["Review the concept"],
       });
 
@@ -141,7 +141,7 @@ describe("KvFeedbackRepository", () => {
         score: "partial",
         explanation: "Decent attempt",
         suggestedLevel: 2,
-        applyLevel: false,
+        levelApplied: false,
         improvements: ["Expand on monitoring"],
         feedUp: "You are working toward CKA-level troubleshooting skills.",
         feedBack:
@@ -173,7 +173,7 @@ describe("KvFeedbackRepository", () => {
         score: "correct",
         explanation: "Good",
         suggestedLevel: 3,
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
 
@@ -193,7 +193,7 @@ describe("KvFeedbackRepository", () => {
         score: "correct",
         explanation: "Strong process-level thinking",
         suggestedLevel: 4,
-        applyLevel: true,
+        levelApplied: true,
         improvements: [],
         feedbackLevel: "process",
       });
@@ -210,7 +210,7 @@ describe("KvFeedbackRepository", () => {
         score: "correct",
         explanation: "Good",
         suggestedLevel: 3,
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
 

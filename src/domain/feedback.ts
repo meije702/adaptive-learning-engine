@@ -5,7 +5,7 @@
  * Both the REST POST /api/answers/:id/feedback handler and the MCP
  * create_feedback tool must call this function so the two paths cannot drift.
  *
- * Key invariant: when applyLevel is true, progress is keyed on the
+ * Key invariant: when levelApplied is true, progress is keyed on the
  * question's domainId (NOT the question id — that was a bug we fixed).
  */
 
@@ -13,7 +13,7 @@ import type { CreateFeedback, Repositories } from "../db/repositories.ts";
 import type { Feedback } from "../db/types.ts";
 
 /**
- * Create a feedback record. When `input.applyLevel` is true, also update
+ * Create a feedback record. When `input.levelApplied` is true, also update
  * the learner's progress on the question's domain to `input.suggestedLevel`.
  *
  * Returns the persisted feedback.
@@ -24,7 +24,7 @@ export async function recordFeedbackAndProgress(
 ): Promise<Feedback> {
   const feedback = await repos.feedback.create(input);
 
-  if (input.applyLevel) {
+  if (input.levelApplied) {
     const question = await repos.questions.get(input.questionId);
     if (question) {
       await repos.progress.put(question.domainId, {

@@ -42,7 +42,7 @@ describe("recordFeedbackAndProgress", () => {
       score: "partial",
       explanation: "close",
       suggestedLevel: 2,
-      applyLevel: false,
+      levelApplied: false,
       improvements: ["add detail"],
     });
 
@@ -51,7 +51,7 @@ describe("recordFeedbackAndProgress", () => {
     assertEquals(fetched?.score, "partial");
   });
 
-  it("does NOT update progress when applyLevel is false", async () => {
+  it("does NOT update progress when levelApplied is false", async () => {
     const { question, answer } = await seedQuestionAndAnswer();
 
     await recordFeedbackAndProgress(repos, {
@@ -60,7 +60,7 @@ describe("recordFeedbackAndProgress", () => {
       score: "correct",
       explanation: "ok",
       suggestedLevel: 4,
-      applyLevel: false,
+      levelApplied: false,
       improvements: [],
     });
 
@@ -68,7 +68,7 @@ describe("recordFeedbackAndProgress", () => {
     assertEquals(progress, null);
   });
 
-  it("updates progress on the question's DOMAIN (not questionId) when applyLevel", async () => {
+  it("updates progress on the question's DOMAIN (not questionId) when levelApplied", async () => {
     const { question, answer } = await seedQuestionAndAnswer();
 
     await recordFeedbackAndProgress(repos, {
@@ -77,7 +77,7 @@ describe("recordFeedbackAndProgress", () => {
       score: "correct",
       explanation: "solid",
       suggestedLevel: 4,
-      applyLevel: true,
+      levelApplied: true,
       improvements: [],
     });
 

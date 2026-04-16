@@ -249,7 +249,7 @@ describe("API Route Handlers — Layer 2", () => {
         score: "partial",
         explanation: "Ok",
         suggestedLevel: 2,
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
 
@@ -468,7 +468,7 @@ describe("API Route Handlers — Layer 2", () => {
   // ── POST /api/answers/:answerId/feedback — progress update ──
 
   describe("POST /api/answers/:answerId/feedback", () => {
-    it("updates progress on the correct domainId when applyLevel is true", async () => {
+    it("updates progress on the correct domainId when levelApplied is true", async () => {
       const { handler } = await import(
         "@/routes/api/answers/[answerId]/feedback.ts"
       );
@@ -501,7 +501,7 @@ describe("API Route Handlers — Layer 2", () => {
           score: "correct",
           explanation: "Good",
           suggestedLevel: 4,
-          applyLevel: true,
+          levelApplied: true,
           improvements: [],
         }),
         { params: { answerId: answer.id } },
@@ -554,7 +554,7 @@ describe("API Route Handlers — Layer 2", () => {
         score: "correct",
         explanation: "Well done",
         suggestedLevel: 3,
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
 

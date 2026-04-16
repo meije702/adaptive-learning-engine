@@ -77,7 +77,7 @@ export const handler = define.handlers({
         suggestedLevel: graded.correct
           ? question.maxLevel
           : Math.max(0, question.maxLevel - 1),
-        applyLevel: false,
+        levelApplied: false,
         improvements: [],
       });
 

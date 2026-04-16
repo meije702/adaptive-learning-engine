@@ -180,7 +180,7 @@ describe("Scenario: Weekly content generation cycle", () => {
     const evalData = await evalResponse.json();
     assertEquals(evalData.metadata.pending, true); // free-text -> pending
 
-    // Step 5: Create feedback with applyLevel=true via MCP
+    // Step 5: Create feedback with levelApplied=true via MCP
     const answerId = evalData.metadata.answerId;
     const feedbackResult = await client.callTool({
       name: "create_feedback",
@@ -190,7 +190,7 @@ describe("Scenario: Weekly content generation cycle", () => {
         score: "correct",
         explanation: "Excellent analysis of the problem",
         suggestedLevel: 3,
-        applyLevel: true,
+        levelApplied: true,
         improvements: [],
         feedUp: "This brings you closer to independent CKA competency.",
         feedBack: "You correctly identified the constraint analysis approach.",
