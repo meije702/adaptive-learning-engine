@@ -194,6 +194,7 @@ interface Question {
   maxLevel: number;                // competence level this question targets
   deadline: string;
   scrimCheckpoint?: string;        // links to Scrim challenge checkpoint
+  metacognitiveType?: "forethought" | "monitoring" | "reflection";
 }
 ```
 
@@ -232,6 +233,10 @@ interface Feedback {
   levelApplied: boolean;
   improvements: string[];
   createdAt: string;
+  feedUp?: string;                 // where is the learner heading
+  feedBack?: string;               // how did they do (evidence-based)
+  feedForward?: string;            // what should they do next
+  feedbackLevel?: "task" | "process" | "self_regulation";
 }
 ```
 
@@ -261,6 +266,24 @@ KV keys: `["interaction_logs", dayContentId]`
 
 The log is an opaque JSON blob from Scrim's perspective (see section 3.5
 for the structure).
+
+#### CalibrationEntry
+
+Tracks self-assessment accuracy (predicted vs actual performance).
+
+```typescript
+interface CalibrationEntry {
+  id: string;
+  questionId: string;
+  domainId: string;
+  predictedScore: "correct" | "partial" | "incorrect";
+  actualScore: "correct" | "partial" | "incorrect";
+  delta: -1 | 0 | 1;  // -1=overestimated, 0=calibrated, 1=underestimated
+  createdAt: string;
+}
+```
+
+KV keys: `["calibration", id]`, `["calibration_by_domain", domainId, id]`
 
 ### 2.4 Configuration system
 
@@ -579,6 +602,33 @@ learner state), **generate** (write content and feedback), and **steer**
 | `send_intake_message` | content, phase? | sends agent message, optionally advances intake phase |
 | `complete_intake` | gapAnalysis, baselineResults | finalizes intake, sets baseline Progress, marks completed |
 
+#### Wellbeing tools
+
+| Tool | Input | Effect |
+|------|-------|--------|
+| `set_wellbeing_status` | status (active/paused/returning) | updates LearnerState.wellbeing |
+| `recalculate_retention_after_pause` | pauseDays | resets retention intervals proportional to absence |
+
+#### Gap analysis tools
+
+| Tool | Input | Effect |
+|------|-------|--------|
+| `get_gap_analysis` | phaseId? | computes per-phase gap: avg level, gap size, strategy, risk factors |
+| `recalculate_gaps` | weekNumber | compares current trajectory against intake estimate, produces recommendations |
+
+#### Calibration tools
+
+| Tool | Input | Effect |
+|------|-------|--------|
+| `record_self_assessment` | questionId, predictedScore | stores prediction, computes delta against actual score |
+| `get_calibration_summary` | none | returns per-domain avg delta and count |
+
+#### Scheduling tools
+
+| Tool | Input | Effect |
+|------|-------|--------|
+| `get_scheduled_tasks` | none | returns task manifest + learner schedule config |
+
 ### 4.3 Agent behavioral instructions
 
 The AI agent's behavioral contract is defined in `CLAUDE.md` at the
@@ -883,6 +933,24 @@ polls for new agent messages. The dashboard shows an intake banner when
 8. First week plan can now be generated
 ```
 
+### 5.6 Wellbeing states
+
+LearnerState.wellbeing.status controls the system behavior:
+
+- **active**: normal operation, content generated, retention tracked
+- **paused**: complete silence -- no content, no questions, no notifications. Dashboard shows calm banner. Today view shows pause message.
+- **returning**: soft re-entry. Agent starts with wellbeing, not knowledge. Retention intervals recalculated for decay during absence.
+
+The agent calls `set_wellbeing_status` to transition. On return, `recalculate_retention_after_pause` adjusts all SM-2 schedules.
+
+### 5.7 Calibration flow
+
+After assessments, the learner predicts their score before seeing feedback. The system records `CalibrationEntry` with the delta between prediction and reality.
+
+The agent calls `get_calibration_summary` to detect patterns: "You consistently overestimate on networking topics." This is surfaced as useful self-knowledge, not criticism.
+
+Flow: Learner submits answer -> SelfAssessment island prompts prediction -> POST /api/calibration stores entry -> feedback revealed -> agent reads calibration summary to inform future content.
+
 ---
 
 ## 6. REST API
@@ -940,6 +1008,18 @@ All endpoints return JSON. Error responses use RFC 7807 Problem Details.
 | GET | `/api/intake` | Current IntakeSession |
 | GET | `/api/intake/messages?since=` | Intake messages (optional timestamp filter) |
 | POST | `/api/intake/messages` | Learner sends a message |
+
+### Wellbeing
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/wellbeing` | Update wellbeing status (active/paused/returning) |
+
+### Calibration
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/calibration` | Submit self-assessment prediction |
 
 ### Scrim integration
 
@@ -1047,6 +1127,16 @@ a new config set and point `ALE_CONFIG_DIR` to it):
 - `learner.config.yaml` -- who is learning
 - `system.config.yaml` -- how the system operates
 
+### 8.7 Authentication
+
+When `system.config.auth.type` is `"bearer"`, set the `ALE_AUTH_TOKEN` environment variable. All `/api/` requests must include `Authorization: Bearer <token>`. Page routes (dashboard, today, intake) are not protected. The MCP server uses stdio transport and doesn't need HTTP auth.
+
+When `auth.type` is `"none"`, no token is required.
+
+### 8.8 MCP auto-connection
+
+The `.mcp.json` file at the project root auto-connects Claude Code to the MCP server. No manual configuration needed when opening the project in Claude Code.
+
 ### 8.6 The agent's daily workflow
 
 1. At generation time (default 22:00), connect and call `get_dashboard`.
@@ -1074,3 +1164,8 @@ a new config set and point `ALE_CONFIG_DIR` to it):
 | Interaction logs stored as opaque JSON | ALE doesn't need to understand Scrim's log format |
 | Language reference embedded in MCP instructions | Agent always has the vocabulary without extra tool calls |
 | Config-first (YAML, no domain logic in code) | Same codebase deploys to any curriculum by swapping config |
+| Bearer token auth on API routes | Simple, stateless; page routes stay open for learner browser access |
+| Task manifest for scheduling | ALE doesn't run a scheduler; manifest describes tasks for external triggers (Deno.cron, GitHub Actions, Claude Code) |
+| Calibration delta tracking | Enables metacognitive growth patterns without gamification; surfaced as self-knowledge |
+| Three-component feedback structure | Optional fields preserve backward compatibility while enabling richer pedagogical feedback |
+| Feedback visibility gating | Assessment feedback hidden until configured time; enforces reflection gap between submission and results |

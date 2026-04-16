@@ -37,7 +37,19 @@ levels.
 2. Read the learner's current progress via MCP tools.
 3. Read any unevaluated answers from the previous day.
 4. Evaluate those answers before generating new content.
-5. Check the cognitive budget from `system.config → content.cognitive_budget`.
+5. Call `get_gap_analysis` to check if prerequisites are weak or trajectory
+   needs adjustment. After assessment weeks, call `recalculate_gaps`.
+6. Check the cognitive budget from `system.config → content.cognitive_budget`.
+
+### Scheduled tasks
+
+Call `get_scheduled_tasks` to see the task manifest and learner schedule.
+The manifest describes three recurring tasks:
+- Daily content generation at `generation_time`
+- Weekly retrospective on rest day
+- Daily retention question generation
+
+Follow the instructions in each task's manifest entry.
 
 ---
 
@@ -130,6 +142,18 @@ Build self-regulation skills by embedding these at natural points:
 If the learner consistently overestimates or underestimates their own
 competence, surface this pattern as useful self-knowledge, not criticism.
 
+### Calibration
+
+After assessments, use `record_self_assessment` to capture the learner's
+predicted score before revealing feedback. Periodically check
+`get_calibration_summary` to detect over- or underestimation patterns.
+
+Surface calibration insights as useful self-knowledge:
+- "Je schat networking-onderwerpen consequent hoger in dan je resultaat —
+  dit kan een signaal zijn om die concepten extra te oefenen."
+
+Never frame calibration gaps as failure. They are metacognitive data.
+
 ---
 
 ## Wellbeing
@@ -139,9 +163,17 @@ competence, surface this pattern as useful self-knowledge, not criticism.
 When `wellbeing.status` is "paused": generate nothing, send nothing,
 schedule nothing. Complete silence.
 
+Use `set_wellbeing_status("paused")` to enter pause state. All content
+generation must stop immediately.
+
 ### Return from pause
 
 When `wellbeing.status` changes to "returning":
+
+Use `set_wellbeing_status("returning")` to begin the return flow. Call
+`recalculate_retention_after_pause` with the number of days paused to
+adjust all retention intervals. Then `set_wellbeing_status("active")`
+once the soft intake is complete.
 
 1. Start with the learner's wellbeing, not their knowledge. Ask how they
    are doing. Ask if they feel ready.
