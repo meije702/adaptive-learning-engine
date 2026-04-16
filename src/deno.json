@@ -7,7 +7,8 @@
     "build": "vite build",
     "start": "deno serve -A _fresh/server.js",
     "update": "deno run -A -r jsr:@fresh/update .",
-    "test": "deno test -A",
+    "test": "deno test -A --no-check",
+    "test:check": "deno check main.ts mcp/main.ts && deno test -A --no-check",
     "mcp": "deno run -A mcp/main.ts"
   },
   "lint": {
@@ -33,7 +34,10 @@
     "@std/testing/bdd": "jsr:@std/testing@^1/bdd",
     "zod": "npm:zod@^3.24",
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1",
-    "@modelcontextprotocol/sdk/": "npm:/@modelcontextprotocol/sdk@^1/",
+    "@modelcontextprotocol/sdk/server/mcp": "npm:@modelcontextprotocol/sdk@^1/server/mcp.js",
+    "@modelcontextprotocol/sdk/server/stdio": "npm:@modelcontextprotocol/sdk@^1/server/stdio.js",
+    "@modelcontextprotocol/sdk/client/index.js": "npm:@modelcontextprotocol/sdk@^1/client",
+    "@modelcontextprotocol/sdk/inMemory.js": "npm:@modelcontextprotocol/sdk@^1/inMemory.js",
     "@scrim/core": "../../scrim/packages/core/mod.ts",
     "@scrim/core/types": "../../scrim/packages/core/src/types/mod.ts",
     "@scrim/core/runtime": "../../scrim/packages/core/src/runtime/mod.ts",

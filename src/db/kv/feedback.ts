@@ -42,6 +42,10 @@ export class KvFeedbackRepository implements FeedbackRepository {
       suggestedLevel: input.suggestedLevel,
       levelApplied: input.applyLevel,
       improvements: input.improvements,
+      feedUp: input.feedUp,
+      feedBack: input.feedBack,
+      feedForward: input.feedForward,
+      feedbackLevel: input.feedbackLevel,
       createdAt: now,
     };
 

@@ -132,7 +132,7 @@ describe("KvFeedbackRepository", () => {
   });
 
   describe("three-component fields (feedUp/feedBack/feedForward)", () => {
-    it("should store feedUp, feedBack, and feedForward when provided", async () => {
+    it("should round-trip feedUp, feedBack, and feedForward through storage", async () => {
       const feedback = await repos.feedback.create({
         answerId,
         questionId,
@@ -146,15 +146,34 @@ describe("KvFeedbackRepository", () => {
         feedForward: "Next time, include kubectl top output in your investigation.",
       });
 
-      // Note: The current implementation does not pass these fields through.
-      // This test documents the actual behavior.
       const fetched = await repos.feedback.get(feedback.id);
       assertNotEquals(fetched, null);
+      assertEquals(fetched!.feedUp, "You are working toward CKA-level troubleshooting skills.");
+      assertEquals(fetched!.feedBack, "Your log analysis was thorough but you missed the resource check.");
+      assertEquals(fetched!.feedForward, "Next time, include kubectl top output in your investigation.");
+    });
+
+    it("should leave structured fields undefined when not provided", async () => {
+      const feedback = await repos.feedback.create({
+        answerId,
+        questionId,
+        score: "correct",
+        explanation: "Good",
+        suggestedLevel: 3,
+        applyLevel: false,
+        improvements: [],
+      });
+
+      const fetched = await repos.feedback.get(feedback.id);
+      assertNotEquals(fetched, null);
+      assertEquals(fetched!.feedUp, undefined);
+      assertEquals(fetched!.feedBack, undefined);
+      assertEquals(fetched!.feedForward, undefined);
     });
   });
 
   describe("feedbackLevel", () => {
-    it("should accept feedback with a feedbackLevel", async () => {
+    it("should round-trip feedbackLevel through storage", async () => {
       const feedback = await repos.feedback.create({
         answerId,
         questionId,
@@ -166,11 +185,25 @@ describe("KvFeedbackRepository", () => {
         feedbackLevel: "process",
       });
 
-      // Note: The current implementation does not pass feedbackLevel through.
-      // This test documents the actual behavior.
       const fetched = await repos.feedback.get(feedback.id);
       assertNotEquals(fetched, null);
-      assertEquals(fetched!.score, "correct");
+      assertEquals(fetched!.feedbackLevel, "process");
+    });
+
+    it("should leave feedbackLevel undefined when not provided", async () => {
+      const feedback = await repos.feedback.create({
+        answerId,
+        questionId,
+        score: "correct",
+        explanation: "Good",
+        suggestedLevel: 3,
+        applyLevel: false,
+        improvements: [],
+      });
+
+      const fetched = await repos.feedback.get(feedback.id);
+      assertNotEquals(fetched, null);
+      assertEquals(fetched!.feedbackLevel, undefined);
     });
   });
 });

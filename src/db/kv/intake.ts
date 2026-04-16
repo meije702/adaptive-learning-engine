@@ -33,14 +33,16 @@ export class KvIntakeRepository implements IntakeRepository {
 
   async getMessages(since?: string): Promise<IntakeMessage[]> {
     const messages: IntakeMessage[] = [];
-    const prefix = since
-      ? ["intake_messages", since]
-      : ["intake_messages"];
 
-    const iter = this.kv.list<IntakeMessage>({ prefix });
+    // Use start with a key after the since timestamp to exclude it and
+    // everything before it. The \uffff suffix ensures we skip all entries
+    // at the since timestamp (regardless of message id).
+    const selector = since
+      ? { prefix: ["intake_messages"] as Deno.KvKey, start: ["intake_messages", since, "\uffff"] as Deno.KvKey }
+      : { prefix: ["intake_messages"] as Deno.KvKey };
+
+    const iter = this.kv.list<IntakeMessage>(selector);
     for await (const entry of iter) {
-      // When using `since`, skip the exact match (we want messages after it)
-      if (since && entry.value.timestamp === since) continue;
       messages.push(entry.value);
     }
 

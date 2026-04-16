@@ -92,41 +92,52 @@ describe("KvIntakeRepository", () => {
   });
 
   describe("getMessages with since", () => {
-    it("should exclude the exact-match message when using since", async () => {
-      // The since filter uses KV prefix matching on the timestamp component,
-      // so it only finds messages whose key shares the same timestamp prefix.
-      // It then skips the exact match. This test verifies the skip behavior.
+    it("should return only messages created after the since timestamp", async () => {
       const first = await repos.intake.addMessage({
         role: "agent",
         content: "First message",
         phase: "goal_validation",
       });
 
-      // Retrieve with the first message's timestamp — the implementation
-      // uses prefix: ["intake_messages", since] which matches keys starting
-      // with that timestamp, then skips entries whose timestamp === since.
-      const messages = await repos.intake.getMessages(first.timestamp);
-      assertEquals(messages.length, 0);
-    });
+      // Small delay to ensure different timestamps
+      await new Promise((r) => setTimeout(r, 10));
 
-    it("should return messages that share a timestamp prefix but differ in id", async () => {
-      // When two messages are created within the same millisecond they share
-      // a timestamp prefix — the second message will be returned by since
-      // because its full key differs.
-      const msg1 = await repos.intake.addMessage({
-        role: "agent",
-        content: "Message A",
+      const second = await repos.intake.addMessage({
+        role: "learner",
+        content: "Second message",
         phase: "goal_validation",
       });
 
-      // Without since, all messages are returned
-      const allMessages = await repos.intake.getMessages();
-      assertEquals(allMessages.length, 1);
-      assertEquals(allMessages[0].content, "Message A");
+      // since = first message's timestamp should return only second
+      const messages = await repos.intake.getMessages(first.timestamp);
+      assertEquals(messages.length, 1);
+      assertEquals(messages[0].content, "Second message");
+      assertEquals(messages[0].id, second.id);
+    });
 
-      // With since set to the message's own timestamp, exact match is skipped
-      const filtered = await repos.intake.getMessages(msg1.timestamp);
-      assertEquals(filtered.length, 0);
+    it("should return empty array when no messages exist after since", async () => {
+      const msg = await repos.intake.addMessage({
+        role: "agent",
+        content: "Only message",
+        phase: "goal_validation",
+      });
+
+      const messages = await repos.intake.getMessages(msg.timestamp);
+      assertEquals(messages.length, 0);
+    });
+
+    it("should not return the message at the exact since timestamp", async () => {
+      const msg = await repos.intake.addMessage({
+        role: "agent",
+        content: "At cursor",
+        phase: "goal_validation",
+      });
+
+      const result = await repos.intake.getMessages(msg.timestamp);
+      // The cursor message itself must not be returned
+      for (const m of result) {
+        assertNotEquals(m.id, msg.id);
+      }
     });
   });
 });
