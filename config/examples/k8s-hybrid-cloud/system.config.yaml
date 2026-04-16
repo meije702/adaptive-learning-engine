@@ -32,8 +32,10 @@ retention:
   multiplier_partial: 1.2
   multiplier_incorrect: 0.0
   max_interval_days: 60
+  min_domains_per_session: 2       # interleaving: mix at least 2 domains per retention session
 
 content:
+  cognitive_budget: 4              # max new concepts per session
   max_length:
     theory: 600
     practice: 400

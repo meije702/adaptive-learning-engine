@@ -31,9 +31,11 @@ export const SystemConfigSchema = z.object({
     multiplier_partial: z.number(),
     multiplier_incorrect: z.number(),
     max_interval_days: z.number(),
+    min_domains_per_session: z.number(),
   }),
 
   content: z.object({
+    cognitive_budget: z.number(),
     max_length: z.object({
       theory: z.number(),
       practice: z.number(),

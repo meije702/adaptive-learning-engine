@@ -56,8 +56,10 @@ Deno.test("SystemConfigSchema - accepts valid config", () => {
       multiplier_partial: 1.2,
       multiplier_incorrect: 0,
       max_interval_days: 60,
+      min_domains_per_session: 2,
     },
     content: {
+      cognitive_budget: 4,
       max_length: {
         theory: 600,
         practice: 400,

@@ -15,6 +15,13 @@ const PhaseSchema = z.object({
   bridge: BridgeSchema,
 });
 
+const ScaffoldingLevelSchema = z.enum([
+  "full_worked_examples",
+  "guided_with_hints",
+  "minimal_hints_on_request",
+  "none",
+]);
+
 const DomainSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -25,6 +32,7 @@ const DomainSchema = z.object({
   bridge: BridgeSchema,
   key_concepts: z.array(z.string()),
   resources: z.array(z.string()),
+  scaffolding_profile: z.record(z.string(), ScaffoldingLevelSchema).optional(),
 });
 
 const StretchDomainSchema = z.object({

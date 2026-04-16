@@ -117,6 +117,12 @@ domains:
       - "OCI image spec"
       - "Layers en caching"
       - "Container runtime (containerd, CRI-O)"
+    scaffolding_profile:
+      "1": "full_worked_examples"
+      "2": "guided_with_hints"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
     resources: []
 
   - id: "k8s-architecture"
