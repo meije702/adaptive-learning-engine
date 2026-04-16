@@ -1,4 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
+import { describe, it } from "@std/testing/bdd";
 import { CurriculumConfigSchema } from "./curriculum.ts";
 
 const validMinimal = {
@@ -58,45 +59,47 @@ const validMinimal = {
   },
 };
 
-Deno.test("CurriculumConfigSchema - accepts valid minimal config", () => {
-  const result = CurriculumConfigSchema.safeParse(validMinimal);
-  assertEquals(result.success, true);
-});
+describe("CurriculumConfigSchema", () => {
+  it("should accept valid minimal config", () => {
+    const result = CurriculumConfigSchema.safeParse(validMinimal);
+    assertEquals(result.success, true);
+  });
 
-Deno.test("CurriculumConfigSchema - accepts null bridge.from (blank slate)", () => {
-  const blankSlate = {
-    ...validMinimal,
-    bridge: {
-      from: null,
-      to: validMinimal.bridge.to,
-    },
-  };
-  const result = CurriculumConfigSchema.safeParse(blankSlate);
-  assertEquals(result.success, true);
-  if (result.success) {
-    assertEquals(result.data.bridge.from, null);
-  }
-});
-
-Deno.test("CurriculumConfigSchema - rejects invalid proficiency", () => {
-  const invalid = {
-    ...validMinimal,
-    bridge: {
-      from: {
-        label: "test",
-        concepts: [],
-        proficiency: "godlike",
+  it("should accept null bridge.from (blank slate)", () => {
+    const blankSlate = {
+      ...validMinimal,
+      bridge: {
+        from: null,
+        to: validMinimal.bridge.to,
       },
-      to: validMinimal.bridge.to,
-    },
-  };
-  const result = CurriculumConfigSchema.safeParse(invalid);
-  assertEquals(result.success, false);
-});
+    };
+    const result = CurriculumConfigSchema.safeParse(blankSlate);
+    assertEquals(result.success, true);
+    if (result.success) {
+      assertEquals(result.data.bridge.from, null);
+    }
+  });
 
-Deno.test("CurriculumConfigSchema - rejects missing meta.id", () => {
-  const { id: _, ...metaWithoutId } = validMinimal.meta;
-  const invalid = { ...validMinimal, meta: metaWithoutId };
-  const result = CurriculumConfigSchema.safeParse(invalid);
-  assertEquals(result.success, false);
+  it("should reject invalid proficiency", () => {
+    const invalid = {
+      ...validMinimal,
+      bridge: {
+        from: {
+          label: "test",
+          concepts: [],
+          proficiency: "godlike",
+        },
+        to: validMinimal.bridge.to,
+      },
+    };
+    const result = CurriculumConfigSchema.safeParse(invalid);
+    assertEquals(result.success, false);
+  });
+
+  it("should reject missing meta.id", () => {
+    const { id: _, ...metaWithoutId } = validMinimal.meta;
+    const invalid = { ...validMinimal, meta: metaWithoutId };
+    const result = CurriculumConfigSchema.safeParse(invalid);
+    assertEquals(result.success, false);
+  });
 });

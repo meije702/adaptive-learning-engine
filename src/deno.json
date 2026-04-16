@@ -30,6 +30,7 @@
     "vite": "npm:vite@^7.1.3",
     "@std/yaml": "jsr:@std/yaml@^1",
     "@std/path": "jsr:@std/path@^1",
+    "@std/testing/bdd": "jsr:@std/testing@^1/bdd",
     "zod": "npm:zod@^3.24",
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1",
     "@modelcontextprotocol/sdk/": "npm:/@modelcontextprotocol/sdk@^1/",

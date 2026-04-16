@@ -1,20 +1,34 @@
 import { assertEquals, assertNotEquals } from "jsr:@std/assert";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { KvProgressRepository } from "./progress.ts";
+import { createTestKv } from "@/test_helpers.ts";
+import type { Repositories } from "../repositories.ts";
 
-Deno.test("KvProgressRepository - CRUD operations", async () => {
-  const kv = await Deno.openKv(":memory:");
-  const repo = new KvProgressRepository(kv);
+describe("KvProgressRepository", () => {
+  let kv: Deno.Kv;
+  let repo: KvProgressRepository;
 
-  try {
-    // Initially empty
+  beforeEach(async () => {
+    const testKv = await createTestKv();
+    kv = testKv.kv;
+    repo = testKv.repos.progress as KvProgressRepository;
+  });
+
+  afterEach(() => {
+    kv.close();
+  });
+
+  it("should return empty array when no progress exists", async () => {
     const all = await repo.getAll();
     assertEquals(all.length, 0);
+  });
 
-    // Get non-existent returns null
+  it("should return null for non-existent domain", async () => {
     const missing = await repo.get("nonexistent");
     assertEquals(missing, null);
+  });
 
-    // Put creates new progress
+  it("should create new progress via put", async () => {
     const created = await repo.put("container-fundamentals", {
       level: 2,
       source: "assessment",
@@ -26,13 +40,26 @@ Deno.test("KvProgressRepository - CRUD operations", async () => {
     assertEquals(created.history.length, 1);
     assertEquals(created.history[0].source, "assessment");
     assertEquals(created.history[0].notes, "Good understanding");
+  });
 
-    // Get returns the created progress
+  it("should retrieve created progress via get", async () => {
+    await repo.put("container-fundamentals", {
+      level: 2,
+      source: "assessment",
+      notes: "Good understanding",
+    });
+
     const fetched = await repo.get("container-fundamentals");
     assertNotEquals(fetched, null);
     assertEquals(fetched!.level, 2);
+  });
 
-    // Put updates existing progress
+  it("should update existing progress via put", async () => {
+    await repo.put("container-fundamentals", {
+      level: 2,
+      source: "assessment",
+    });
+
     const updated = await repo.put("container-fundamentals", {
       level: 3,
       source: "retention",
@@ -40,15 +67,19 @@ Deno.test("KvProgressRepository - CRUD operations", async () => {
     assertEquals(updated.level, 3);
     assertEquals(updated.assessmentCount, 2);
     assertEquals(updated.history.length, 2);
+  });
 
-    // GetAll returns all
+  it("should return all progress entries via getAll", async () => {
+    await repo.put("container-fundamentals", {
+      level: 2,
+      source: "assessment",
+    });
     await repo.put("k8s-architecture", {
       level: 1,
       source: "manual",
     });
+
     const allAfter = await repo.getAll();
     assertEquals(allAfter.length, 2);
-  } finally {
-    kv.close();
-  }
+  });
 });

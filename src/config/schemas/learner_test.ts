@@ -1,4 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
+import { describe, it } from "@std/testing/bdd";
 import { LearnerConfigSchema } from "./learner.ts";
 
 const validMinimal = {
@@ -40,40 +41,42 @@ const validMinimal = {
   },
 };
 
-Deno.test("LearnerConfigSchema - accepts valid config", () => {
-  const result = LearnerConfigSchema.safeParse(validMinimal);
-  assertEquals(result.success, true);
-});
+describe("LearnerConfigSchema", () => {
+  it("should accept valid config", () => {
+    const result = LearnerConfigSchema.safeParse(validMinimal);
+    assertEquals(result.success, true);
+  });
 
-Deno.test("LearnerConfigSchema - rejects invalid tone", () => {
-  const invalid = {
-    ...validMinimal,
-    preferences: { ...validMinimal.preferences, tone: "aggressive" },
-  };
-  const result = LearnerConfigSchema.safeParse(invalid);
-  assertEquals(result.success, false);
-});
+  it("should reject invalid tone", () => {
+    const invalid = {
+      ...validMinimal,
+      preferences: { ...validMinimal.preferences, tone: "aggressive" },
+    };
+    const result = LearnerConfigSchema.safeParse(invalid);
+    assertEquals(result.success, false);
+  });
 
-Deno.test("LearnerConfigSchema - rejects invalid proficiency in technologies", () => {
-  const invalid = {
-    ...validMinimal,
-    background: {
-      ...validMinimal.background,
-      technologies: [{ name: "Go", proficiency: "godlike" }],
-    },
-  };
-  const result = LearnerConfigSchema.safeParse(invalid);
-  assertEquals(result.success, false);
-});
+  it("should reject invalid proficiency in technologies", () => {
+    const invalid = {
+      ...validMinimal,
+      background: {
+        ...validMinimal.background,
+        technologies: [{ name: "Go", proficiency: "godlike" }],
+      },
+    };
+    const result = LearnerConfigSchema.safeParse(invalid);
+    assertEquals(result.success, false);
+  });
 
-Deno.test("LearnerConfigSchema - rejects invalid day type in day_plan", () => {
-  const invalid = {
-    ...validMinimal,
-    schedule: {
-      ...validMinimal.schedule,
-      day_plan: { "1": "meditation" },
-    },
-  };
-  const result = LearnerConfigSchema.safeParse(invalid);
-  assertEquals(result.success, false);
+  it("should reject invalid day type in day_plan", () => {
+    const invalid = {
+      ...validMinimal,
+      schedule: {
+        ...validMinimal.schedule,
+        day_plan: { "1": "meditation" },
+      },
+    };
+    const result = LearnerConfigSchema.safeParse(invalid);
+    assertEquals(result.success, false);
+  });
 });
