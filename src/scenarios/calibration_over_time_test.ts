@@ -29,31 +29,76 @@ describe("Scenario: Calibration tracking over time", () => {
     });
 
     const questions = await repos.questions.create([
-      { dayContentId: day.id, domainId: "domain-a", sequence: 1, type: "open", body: "Q1?", maxLevel: 3, deadline: new Date(Date.now() + 86400000).toISOString() },
-      { dayContentId: day.id, domainId: "domain-a", sequence: 2, type: "open", body: "Q2?", maxLevel: 3, deadline: new Date(Date.now() + 86400000).toISOString() },
-      { dayContentId: day.id, domainId: "domain-a", sequence: 3, type: "open", body: "Q3?", maxLevel: 3, deadline: new Date(Date.now() + 86400000).toISOString() },
+      {
+        dayContentId: day.id,
+        domainId: "domain-a",
+        sequence: 1,
+        type: "open",
+        body: "Q1?",
+        maxLevel: 3,
+        deadline: new Date(Date.now() + 86400000).toISOString(),
+      },
+      {
+        dayContentId: day.id,
+        domainId: "domain-a",
+        sequence: 2,
+        type: "open",
+        body: "Q2?",
+        maxLevel: 3,
+        deadline: new Date(Date.now() + 86400000).toISOString(),
+      },
+      {
+        dayContentId: day.id,
+        domainId: "domain-a",
+        sequence: 3,
+        type: "open",
+        body: "Q3?",
+        maxLevel: 3,
+        deadline: new Date(Date.now() + 86400000).toISOString(),
+      },
     ]);
 
     // Create answers and feedback for each
-    const a1 = await repos.answers.create({ questionId: questions[0].id, body: "A1" });
+    const a1 = await repos.answers.create({
+      questionId: questions[0].id,
+      body: "A1",
+    });
     await repos.feedback.create({
-      answerId: a1.id, questionId: questions[0].id,
-      score: "correct", explanation: "Good", suggestedLevel: 3,
-      applyLevel: false, improvements: [],
+      answerId: a1.id,
+      questionId: questions[0].id,
+      score: "correct",
+      explanation: "Good",
+      suggestedLevel: 3,
+      applyLevel: false,
+      improvements: [],
     });
 
-    const a2 = await repos.answers.create({ questionId: questions[1].id, body: "A2" });
+    const a2 = await repos.answers.create({
+      questionId: questions[1].id,
+      body: "A2",
+    });
     await repos.feedback.create({
-      answerId: a2.id, questionId: questions[1].id,
-      score: "incorrect", explanation: "Wrong", suggestedLevel: 1,
-      applyLevel: false, improvements: ["Review concepts"],
+      answerId: a2.id,
+      questionId: questions[1].id,
+      score: "incorrect",
+      explanation: "Wrong",
+      suggestedLevel: 1,
+      applyLevel: false,
+      improvements: ["Review concepts"],
     });
 
-    const a3 = await repos.answers.create({ questionId: questions[2].id, body: "A3" });
+    const a3 = await repos.answers.create({
+      questionId: questions[2].id,
+      body: "A3",
+    });
     await repos.feedback.create({
-      answerId: a3.id, questionId: questions[2].id,
-      score: "correct", explanation: "Great", suggestedLevel: 3,
-      applyLevel: false, improvements: [],
+      answerId: a3.id,
+      questionId: questions[2].id,
+      score: "correct",
+      explanation: "Great",
+      suggestedLevel: 3,
+      applyLevel: false,
+      improvements: [],
     });
 
     // Record predictions:

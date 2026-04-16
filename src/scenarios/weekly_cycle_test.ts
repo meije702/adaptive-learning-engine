@@ -28,7 +28,8 @@ describe("Scenario: Weekly content generation cycle", () => {
     repos = t.repos;
 
     server = await createMcpServer(repos, config);
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const [clientTransport, serverTransport] = InMemoryTransport
+      .createLinkedPair();
     await server.connect(serverTransport);
     client = new Client({ name: "test-client", version: "1.0.0" });
     await client.connect(clientTransport);
@@ -45,8 +46,10 @@ describe("Scenario: Weekly content generation cycle", () => {
     const planResult = await client.callTool({
       name: "create_week_plan",
       arguments: {
-        weekNumber: 1, domainId: "domain-a",
-        isStretchWeek: false, summary: "Introduction to Domain A fundamentals",
+        weekNumber: 1,
+        domainId: "domain-a",
+        isStretchWeek: false,
+        summary: "Introduction to Domain A fundamentals",
       },
     });
     const plan = parse(planResult);
@@ -67,16 +70,33 @@ describe("Scenario: Weekly content generation cycle", () => {
       protocolVersion: "1.0",
       scene: { name: "domain-a-theory", schemaVersion: "1" },
       steps: [
-        { id: "intro", kind: "show", node: { type: "text", properties: { content: "Welcome to Domain A" } } },
-        { id: "concept", kind: "show", node: { type: "text", properties: { content: "Key concepts explained here" } } },
+        {
+          id: "intro",
+          kind: "show",
+          node: {
+            type: "text",
+            properties: { content: "Welcome to Domain A" },
+          },
+        },
+        {
+          id: "concept",
+          kind: "show",
+          node: {
+            type: "text",
+            properties: { content: "Key concepts explained here" },
+          },
+        },
       ],
     };
 
     const dayResult = await client.callTool({
       name: "create_day_content",
       arguments: {
-        weekNumber: 1, dayOfWeek: 1, type: "theory",
-        domainId: "domain-a", title: "Domain A Theory",
+        weekNumber: 1,
+        dayOfWeek: 1,
+        type: "theory",
+        domainId: "domain-a",
+        title: "Domain A Theory",
         body: "Introduction to core concepts of Domain A.",
         sceneDocument: scene,
       },
@@ -100,15 +120,21 @@ describe("Scenario: Weekly content generation cycle", () => {
         dayContentId: day.id,
         questions: [
           {
-            domainId: "domain-a", sequence: 1, type: "scenario",
+            domainId: "domain-a",
+            sequence: 1,
+            type: "scenario",
             body: "Given a scenario where X, what would you do?",
-            maxLevel: 3, deadline: new Date(Date.now() + 86400000).toISOString(),
+            maxLevel: 3,
+            deadline: new Date(Date.now() + 86400000).toISOString(),
             scrimCheckpoint: "scenario-checkpoint-1",
           },
           {
-            domainId: "domain-a", sequence: 2, type: "multiple_choice",
+            domainId: "domain-a",
+            sequence: 2,
+            type: "multiple_choice",
             body: "Which approach is best for Y?",
-            maxLevel: 2, deadline: new Date(Date.now() + 86400000).toISOString(),
+            maxLevel: 2,
+            deadline: new Date(Date.now() + 86400000).toISOString(),
             scrimCheckpoint: "mc-checkpoint-1",
             options: [
               { key: "A", text: "Approach 1", isOptimal: false },
@@ -125,17 +151,23 @@ describe("Scenario: Weekly content generation cycle", () => {
     assertEquals(questions[0].dayContentId, day.id);
 
     // Verify questions appear as pending via get_pending_answers
-    const pendingResult = await client.callTool({ name: "get_pending_answers", arguments: {} });
+    const pendingResult = await client.callTool({
+      name: "get_pending_answers",
+      arguments: {},
+    });
     const pending = parse(pendingResult);
     assertEquals(pending.length, 2);
 
     // Step 4: Submit answer via API route handler (answers come from learner UI)
-    const { handler: evaluateHandler } = await import("@/routes/api/evaluate.ts");
+    const { handler: evaluateHandler } = await import(
+      "@/routes/api/evaluate.ts"
+    );
     const evalReq = new Request("http://localhost/api/evaluate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        response: "I would analyze the constraints first and then apply pattern X",
+        response:
+          "I would analyze the constraints first and then apply pattern X",
         evaluatorKey: "scenario-checkpoint-1",
         dayContentId: day.id,
       }),
@@ -171,7 +203,10 @@ describe("Scenario: Weekly content generation cycle", () => {
     const feedback = parse(feedbackResult);
     assertEquals(feedback.score, "correct");
     assertEquals(feedback.suggestedLevel, 3);
-    assertEquals(feedback.feedUp, "This brings you closer to independent CKA competency.");
+    assertEquals(
+      feedback.feedUp,
+      "This brings you closer to independent CKA competency.",
+    );
 
     // Step 6: Verify progress updated via get_progress MCP tool
     const progressResult = await client.callTool({

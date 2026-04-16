@@ -53,7 +53,11 @@ export default function AnswerForm(
         {options.map((opt) => (
           <label
             key={opt.key}
-            style={`display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 0.75rem; border: 1px solid ${answer === opt.key ? "#3b82f6" : "#d1d5db"}; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; background: ${answer === opt.key ? "#eff6ff" : "white"};`}
+            style={`display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 0.75rem; border: 1px solid ${
+              answer === opt.key ? "#3b82f6" : "#d1d5db"
+            }; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; background: ${
+              answer === opt.key ? "#eff6ff" : "white"
+            };`}
           >
             <input
               type="radio"
@@ -62,14 +66,20 @@ export default function AnswerForm(
               checked={answer === opt.key}
               onChange={() => setAnswer(opt.key)}
             />
-            <span style="font-weight: 600; min-width: 1.25rem;">{opt.key}.</span>
+            <span style="font-weight: 600; min-width: 1.25rem;">
+              {opt.key}.
+            </span>
             {opt.text}
           </label>
         ))}
         <button
           onClick={handleSubmit}
           disabled={!answer || submitting}
-          style={`margin-top: 0.25rem; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; ${!answer || submitting ? "background: #e5e7eb; color: #9ca3af;" : "background: #3b82f6; color: white;"}`}
+          style={`margin-top: 0.25rem; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; ${
+            !answer || submitting
+              ? "background: #e5e7eb; color: #9ca3af;"
+              : "background: #3b82f6; color: white;"
+          }`}
         >
           {submitting ? "Opslaan..." : "Antwoord insturen"}
         </button>
@@ -95,13 +105,15 @@ export default function AnswerForm(
       <button
         onClick={handleSubmit}
         disabled={!answer.trim() || submitting}
-        style={`align-self: flex-start; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; ${!answer.trim() || submitting ? "background: #e5e7eb; color: #9ca3af;" : "background: #3b82f6; color: white;"}`}
+        style={`align-self: flex-start; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; ${
+          !answer.trim() || submitting
+            ? "background: #e5e7eb; color: #9ca3af;"
+            : "background: #3b82f6; color: white;"
+        }`}
       >
         {submitting ? "Opslaan..." : "Antwoord insturen"}
       </button>
-      {error && (
-        <p style="color: #dc2626; font-size: 0.8125rem;">{error}</p>
-      )}
+      {error && <p style="color: #dc2626; font-size: 0.8125rem;">{error}</p>}
     </div>
   );
 }

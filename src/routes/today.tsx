@@ -13,16 +13,24 @@ export default define.page(async function TodayView(ctx) {
   if (learnerState?.wellbeing?.status === "paused") {
     return (
       <div style="max-width: 960px; margin: 0 auto; padding: 2rem 1rem;">
-        <Head><title>Vandaag</title></Head>
-        <h1 style="font-size: 1.75rem; font-weight: 700; margin-top: 0.5rem;">Vandaag</h1>
+        <Head>
+          <title>Vandaag</title>
+        </Head>
+        <h1 style="font-size: 1.75rem; font-weight: 700; margin-top: 0.5rem;">
+          Vandaag
+        </h1>
         <div style="padding: 1.5rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 0.5rem; margin-top: 1rem; color: #0c4a6e;">
-          <strong>Leertraject gepauzeerd.</strong> Er is geen content gepland. Neem de tijd die je nodig hebt.
+          <strong>Leertraject gepauzeerd.</strong>{" "}
+          Er is geen content gepland. Neem de tijd die je nodig hebt.
         </div>
       </div>
     );
   }
 
-  const today = await repos.days.getToday(schedule.active_days, schedule.day_plan);
+  const today = await repos.days.getToday(
+    schedule.active_days,
+    schedule.day_plan,
+  );
 
   if (!today) {
     const dayOfWeek = new Date().getDay();
@@ -33,11 +41,14 @@ export default define.page(async function TodayView(ctx) {
         <Head>
           <title>Vandaag</title>
         </Head>
-        <h1 style="font-size: 1.75rem; font-weight: 700; margin-top: 0.5rem;">Vandaag</h1>
+        <h1 style="font-size: 1.75rem; font-weight: 700; margin-top: 0.5rem;">
+          Vandaag
+        </h1>
         <p style="color: #6b7280; margin-top: 1rem;">
           {isRestDay
             ? "Rustdag. De AI bereidt de volgende week voor."
-            : "Nog geen content voor vandaag. De AI genereert dit om " + schedule.generation_time + "."}
+            : "Nog geen content voor vandaag. De AI genereert dit om " +
+              schedule.generation_time + "."}
         </p>
       </div>
     );
@@ -51,8 +62,11 @@ export default define.page(async function TodayView(ctx) {
   let feedbackVisible = true;
   if (isAssessmentDay && feedbackDay !== undefined && feedbackTime) {
     const currentDay = now.getDay();
-    if (currentDay < feedbackDay ||
-      (currentDay === feedbackDay && now.toTimeString().slice(0, 5) < feedbackTime)) {
+    if (
+      currentDay < feedbackDay ||
+      (currentDay === feedbackDay &&
+        now.toTimeString().slice(0, 5) < feedbackTime)
+    ) {
       feedbackVisible = false;
     }
   }
@@ -89,19 +103,21 @@ export default define.page(async function TodayView(ctx) {
       </p>
 
       {/* Content body */}
-      {today.sceneDocument ? (
-        <section style="margin-bottom: 1.5rem;">
-          <ScrimPlayer
-            sceneDocument={today.sceneDocument}
-            interactionLog={interactionLog ?? undefined}
-            dayContentId={today.id}
-          />
-        </section>
-      ) : (
-        <section style="padding: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1.5rem; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.75;">
-          {today.body}
-        </section>
-      )}
+      {today.sceneDocument
+        ? (
+          <section style="margin-bottom: 1.5rem;">
+            <ScrimPlayer
+              sceneDocument={today.sceneDocument}
+              interactionLog={interactionLog ?? undefined}
+              dayContentId={today.id}
+            />
+          </section>
+        )
+        : (
+          <section style="padding: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1.5rem; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.75;">
+            {today.body}
+          </section>
+        )}
 
       {/* Questions */}
       {questionsWithAnswers.length > 0 && (
@@ -131,7 +147,11 @@ export default define.page(async function TodayView(ctx) {
                     {question.options.map((opt) => (
                       <div
                         key={opt.key}
-                        style={`padding: 0.375rem 0.625rem; font-size: 0.8125rem; ${answer.body === opt.key ? "font-weight: 600;" : "color: #6b7280;"}`}
+                        style={`padding: 0.375rem 0.625rem; font-size: 0.8125rem; ${
+                          answer.body === opt.key
+                            ? "font-weight: 600;"
+                            : "color: #6b7280;"
+                        }`}
                       >
                         {opt.key}. {opt.text}
                         {answer.body === opt.key ? " ✓" : ""}

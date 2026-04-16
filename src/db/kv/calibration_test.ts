@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "@std/testing/bdd";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { assertEquals, assertNotEquals } from "jsr:@std/assert";
 import { createTestKv } from "@/test_helpers.ts";
 import type { Repositories } from "@/db/repositories.ts";
@@ -153,12 +153,16 @@ describe("KvCalibrationRepository", () => {
       const summary = await repos.calibration.getSummary();
       assertEquals(summary.length, 2);
 
-      const domainASummary = summary.find((s: { domainId: string; avgDelta: number; count: number }) => s.domainId === "domain-a");
+      const domainASummary = summary.find((
+        s: { domainId: string; avgDelta: number; count: number },
+      ) => s.domainId === "domain-a");
       assertNotEquals(domainASummary, undefined);
       assertEquals(domainASummary!.avgDelta, 0);
       assertEquals(domainASummary!.count, 3);
 
-      const domainBSummary = summary.find((s: { domainId: string; avgDelta: number; count: number }) => s.domainId === "domain-b");
+      const domainBSummary = summary.find((
+        s: { domainId: string; avgDelta: number; count: number },
+      ) => s.domainId === "domain-b");
       assertNotEquals(domainBSummary, undefined);
       assertEquals(domainBSummary!.avgDelta, -1);
       assertEquals(domainBSummary!.count, 1);

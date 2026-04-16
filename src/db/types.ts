@@ -186,5 +186,10 @@ export interface PhaseGap {
   phaseName: string;
   gapSize: "small" | "moderate" | "large" | "very_large";
   estimatedWeeks: number;
-  strategy: "analogy" | "first_principles" | "contrast" | "scaffolded" | "accelerated";
+  strategy:
+    | "analogy"
+    | "first_principles"
+    | "contrast"
+    | "scaffolded"
+    | "accelerated";
 }

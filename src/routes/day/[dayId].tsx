@@ -12,7 +12,9 @@ export default define.page(async function DayView(ctx) {
   if (!day) {
     return (
       <div style="max-width: 960px; margin: 0 auto; padding: 2rem 1rem;">
-        <Head><title>Dag niet gevonden</title></Head>
+        <Head>
+          <title>Dag niet gevonden</title>
+        </Head>
         <h1 style="font-size: 1.75rem; font-weight: 700;">Dag niet gevonden</h1>
         <p style="color: #6b7280; margin-top: 1rem;">
           <a href="/" style="color: #3b82f6;">Terug naar dashboard</a>
@@ -43,7 +45,10 @@ export default define.page(async function DayView(ctx) {
         <title>{day.title}</title>
       </Head>
 
-      <a href={`/week/${day.weekNumber}`} style="color: #3b82f6; font-size: 0.875rem;">
+      <a
+        href={`/week/${day.weekNumber}`}
+        style="color: #3b82f6; font-size: 0.875rem;"
+      >
         ← Week {day.weekNumber}
       </a>
 
@@ -51,23 +56,26 @@ export default define.page(async function DayView(ctx) {
         {day.title}
       </h1>
       <p style="color: #6b7280; margin-bottom: 1.5rem;">
-        {domain?.name ?? day.domainId} — Week {day.weekNumber}, Dag {day.dayOfWeek}
+        {domain?.name ?? day.domainId} — Week {day.weekNumber}, Dag{" "}
+        {day.dayOfWeek}
       </p>
 
       {/* Content body */}
-      {day.sceneDocument ? (
-        <section style="margin-bottom: 1.5rem;">
-          <ScrimPlayer
-            sceneDocument={day.sceneDocument}
-            interactionLog={interactionLog ?? undefined}
-            dayContentId={day.id}
-          />
-        </section>
-      ) : (
-        <section style="padding: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1.5rem; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.75;">
-          {day.body}
-        </section>
-      )}
+      {day.sceneDocument
+        ? (
+          <section style="margin-bottom: 1.5rem;">
+            <ScrimPlayer
+              sceneDocument={day.sceneDocument}
+              interactionLog={interactionLog ?? undefined}
+              dayContentId={day.id}
+            />
+          </section>
+        )
+        : (
+          <section style="padding: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1.5rem; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.75;">
+            {day.body}
+          </section>
+        )}
 
       {/* Questions */}
       {questionsWithAnswers.length > 0 && (
@@ -96,9 +104,14 @@ export default define.page(async function DayView(ctx) {
                     {question.options.map((opt) => (
                       <div
                         key={opt.key}
-                        style={`padding: 0.375rem 0.625rem; font-size: 0.8125rem; ${answer.body === opt.key ? "font-weight: 600;" : "color: #6b7280;"}`}
+                        style={`padding: 0.375rem 0.625rem; font-size: 0.8125rem; ${
+                          answer.body === opt.key
+                            ? "font-weight: 600;"
+                            : "color: #6b7280;"
+                        }`}
                       >
-                        {opt.key}. {opt.text}{answer.body === opt.key ? " ✓" : ""}
+                        {opt.key}. {opt.text}
+                        {answer.body === opt.key ? " ✓" : ""}
                       </div>
                     ))}
                   </div>
@@ -106,15 +119,18 @@ export default define.page(async function DayView(ctx) {
 
                 {answer
                   ? (!question.options && (
-                      <div style="padding: 0.75rem; background: #f0fdf4; border-radius: 0.375rem; font-size: 0.875rem; margin-bottom: 0.5rem;">
-                        <strong>Antwoord:</strong> {answer.body}
-                      </div>
-                    ))
+                    <div style="padding: 0.75rem; background: #f0fdf4; border-radius: 0.375rem; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                      <strong>Antwoord:</strong> {answer.body}
+                    </div>
+                  ))
                   : (
                     <AnswerForm
                       questionId={question.id}
                       questionType={question.type}
-                      options={question.options?.map((o) => ({ key: o.key, text: o.text }))}
+                      options={question.options?.map((o) => ({
+                        key: o.key,
+                        text: o.text,
+                      }))}
                     />
                   )}
 

@@ -1,27 +1,34 @@
 # ADR-001: K8s Learning System — Data Model & API Specification
 
-**Status:** Proposed
-**Date:** 2026-04-03
-**Author:** Sander + Claude
+**Status:** Proposed **Date:** 2026-04-03 **Author:** Sander + Claude
 **Deciders:** Sander
 
 ## Context
 
-We bouwen een adaptief leersysteem bestaande uit twee onafhankelijke componenten:
+We bouwen een adaptief leersysteem bestaande uit twee onafhankelijke
+componenten:
 
-1. **Web app** (Fresh on Deno Deploy) — het system of record voor alle leerdata, en de UI voor de gebruiker
-2. **AI agent** (Claude via MCP) — de intelligentie die content genereert, antwoorden beoordeelt, en het leerpad stuurt
+1. **Web app** (Fresh on Deno Deploy) — het system of record voor alle leerdata,
+   en de UI voor de gebruiker
+2. **AI agent** (Claude via MCP) — de intelligentie die content genereert,
+   antwoorden beoordeelt, en het leerpad stuurt
 
-De MCP server is het contract tussen beide. De web app is AI-agnostisch: het werkt als statische tracker zonder agent, en accepteert elke AI die het MCP-contract respecteert.
+De MCP server is het contract tussen beide. De web app is AI-agnostisch: het
+werkt als statische tracker zonder agent, en accepteert elke AI die het
+MCP-contract respecteert.
 
 ## Decision
 
 ### Principes
 
-- **App bezit de data, agent bezit de intelligentie** — geen content of voortgang leeft alleen in de AI
-- **Elke gegenereerde content is immutable na creatie** — de AI schrijft, de app bewaart, niets wordt overschreven
-- **Antwoorden en feedback zijn apart** — een antwoord bestaat onafhankelijk van de beoordeling
-- **Tijdlijn is heilig** — elke entiteit heeft timestamps, de weekloop is de hartslag van het systeem
+- **App bezit de data, agent bezit de intelligentie** — geen content of
+  voortgang leeft alleen in de AI
+- **Elke gegenereerde content is immutable na creatie** — de AI schrijft, de app
+  bewaart, niets wordt overschreven
+- **Antwoorden en feedback zijn apart** — een antwoord bestaat onafhankelijk van
+  de beoordeling
+- **Tijdlijn is heilig** — elke entiteit heeft timestamps, de weekloop is de
+  hartslag van het systeem
 
 ---
 
@@ -33,13 +40,13 @@ De 16 kennisdomeinen. Statisch gedefinieerd, niet door de AI gegenereerd.
 
 ```typescript
 interface Domain {
-  id: string;                  // "container-fundamentals"
-  name: string;                // "Container fundamentals"
+  id: string; // "container-fundamentals"
+  name: string; // "Container fundamentals"
   phase: 1 | 2 | 3 | 4;
-  weekNumber: number;          // 1-16, de geplande week
-  bridge: string;              // "Lambda → Pod: unit of deployment"
-  prerequisites: string[];     // domain ids die eerst level >= 2 moeten zijn
-  tags: string[];              // ["docker", "oci", "runtime", "images"]
+  weekNumber: number; // 1-16, de geplande week
+  bridge: string; // "Lambda → Pod: unit of deployment"
+  prerequisites: string[]; // domain ids die eerst level >= 2 moeten zijn
+  tags: string[]; // ["docker", "oci", "runtime", "images"]
 }
 ```
 
@@ -51,29 +58,29 @@ Het competentieniveau per domein. Wordt bijgewerkt door de AI na evaluatie.
 interface Progress {
   domainId: string;
   level: 0 | 1 | 2 | 3 | 4 | 5;
-  lastAssessedAt: string;      // ISO 8601
+  lastAssessedAt: string; // ISO 8601
   assessmentCount: number;
   history: ProgressEntry[];
 }
 
 interface ProgressEntry {
   level: number;
-  assessedAt: string;          // ISO 8601
+  assessedAt: string; // ISO 8601
   source: "assessment" | "retention" | "manual";
-  notes?: string;              // AI-gegenereerde notitie over de beoordeling
+  notes?: string; // AI-gegenereerde notitie over de beoordeling
 }
 ```
 
 **Competentieniveaus:**
 
-| Level | Label | Omschrijving |
-|-------|-------|-------------|
-| 0 | Onbekend | Nog niet behandeld |
-| 1 | Conceptueel | Kan uitleggen wat het is en waarom |
-| 2 | Begrip | Kan relateren aan bestaande kennis |
-| 3 | Toepassing | Kan configureren met begeleiding |
-| 4 | Zelfstandig | Kan zelfstandig opzetten en troubleshooten |
-| 5 | Expert | Kan in productie ontwerpen en uitleggen |
+| Level | Label       | Omschrijving                               |
+| ----- | ----------- | ------------------------------------------ |
+| 0     | Onbekend    | Nog niet behandeld                         |
+| 1     | Conceptueel | Kan uitleggen wat het is en waarom         |
+| 2     | Begrip      | Kan relateren aan bestaande kennis         |
+| 3     | Toepassing  | Kan configureren met begeleiding           |
+| 4     | Zelfstandig | Kan zelfstandig opzetten en troubleshooten |
+| 5     | Expert      | Kan in productie ontwerpen en uitleggen    |
 
 ### 1.3 WeekPlan
 
@@ -81,12 +88,12 @@ De planning voor één week. Gegenereerd door de AI op zondag.
 
 ```typescript
 interface WeekPlan {
-  weekNumber: number;          // 1-16+
-  domainId: string;            // het hoofddomein van deze week
-  isStretchWeek: boolean;      // elke 3-4 weken een onderwerp buiten comfort zone
-  createdAt: string;           // ISO 8601
-  summary: string;             // AI-samenvatting van de weekdoelen
-  retrospective?: string;      // AI-analyse na afloop (geschreven volgende zondag)
+  weekNumber: number; // 1-16+
+  domainId: string; // het hoofddomein van deze week
+  isStretchWeek: boolean; // elke 3-4 weken een onderwerp buiten comfort zone
+  createdAt: string; // ISO 8601
+  summary: string; // AI-samenvatting van de weekdoelen
+  retrospective?: string; // AI-analyse na afloop (geschreven volgende zondag)
 }
 ```
 
@@ -96,25 +103,25 @@ De content voor één dag. Gegenereerd door de AI, typisch de nacht ervoor.
 
 ```typescript
 interface DayContent {
-  id: string;                  // uuid
+  id: string; // uuid
   weekNumber: number;
-  dayOfWeek: 1 | 2 | 3 | 4 | 5 | 6;  // ma=1 t/m za=6, zo=0 is rustdag
+  dayOfWeek: 1 | 2 | 3 | 4 | 5 | 6; // ma=1 t/m za=6, zo=0 is rustdag
   type: DayType;
   domainId: string;
   title: string;
-  body: string;                // markdown content
-  createdAt: string;           // ISO 8601, wanneer de AI het genereerde
-  basedOn?: string[];          // ids van Answers die als input dienden
+  body: string; // markdown content
+  createdAt: string; // ISO 8601, wanneer de AI het genereerde
+  basedOn?: string[]; // ids van Answers die als input dienden
 }
 
 type DayType =
-  | "theory"                   // maandag
-  | "practice_guided"          // dinsdag
-  | "practice_open"            // woensdag
-  | "practice_troubleshoot"    // donderdag
-  | "assessment"               // vrijdag (gegenereerd na donderdagantwoord)
-  | "review"                   // zaterdag (optioneel)
-  | "retention";               // dagelijkse retentievragen (ma-za)
+  | "theory" // maandag
+  | "practice_guided" // dinsdag
+  | "practice_open" // woensdag
+  | "practice_troubleshoot" // donderdag
+  | "assessment" // vrijdag (gegenereerd na donderdagantwoord)
+  | "review" // zaterdag (optioneel)
+  | "retention"; // dagelijkse retentievragen (ma-za)
 ```
 
 ### 1.5 Question
@@ -123,22 +130,22 @@ Een individuele vraag, onderdeel van DayContent.
 
 ```typescript
 interface Question {
-  id: string;                  // uuid
-  dayContentId: string;        // parent DayContent
-  domainId: string;            // kan afwijken van DayContent bij retentievragen
-  sequence: number;            // volgorde binnen de dag
+  id: string; // uuid
+  dayContentId: string; // parent DayContent
+  domainId: string; // kan afwijken van DayContent bij retentievragen
+  sequence: number; // volgorde binnen de dag
   type: "scenario" | "open" | "multiple_choice" | "troubleshoot";
-  body: string;                // markdown, de vraagstelling
-  options?: QuestionOption[];  // alleen bij multiple_choice
-  hints?: string[];            // progressieve hints
-  maxLevel: number;            // het competentieniveau dat deze vraag toetst
-  deadline: string;            // ISO 8601, wanneer het antwoord verwacht wordt
+  body: string; // markdown, de vraagstelling
+  options?: QuestionOption[]; // alleen bij multiple_choice
+  hints?: string[]; // progressieve hints
+  maxLevel: number; // het competentieniveau dat deze vraag toetst
+  deadline: string; // ISO 8601, wanneer het antwoord verwacht wordt
 }
 
 interface QuestionOption {
   key: "A" | "B" | "C" | "D";
   text: string;
-  isOptimal: boolean;          // niet zichtbaar in de app, alleen voor AI-evaluatie
+  isOptimal: boolean; // niet zichtbaar in de app, alleen voor AI-evaluatie
 }
 ```
 
@@ -148,11 +155,11 @@ Het antwoord van de gebruiker op een vraag.
 
 ```typescript
 interface Answer {
-  id: string;                  // uuid
+  id: string; // uuid
   questionId: string;
-  body: string;                // het antwoord (vrije tekst of "A"/"B"/"C"/"D")
-  submittedAt: string;         // ISO 8601
-  timeSpentSeconds?: number;   // optioneel, voor CKA-tijddruk training
+  body: string; // het antwoord (vrije tekst of "A"/"B"/"C"/"D")
+  submittedAt: string; // ISO 8601
+  timeSpentSeconds?: number; // optioneel, voor CKA-tijddruk training
 }
 ```
 
@@ -162,15 +169,15 @@ De AI-beoordeling van een antwoord. Geschreven na het lezen van het Answer.
 
 ```typescript
 interface Feedback {
-  id: string;                  // uuid
+  id: string; // uuid
   answerId: string;
   questionId: string;
   score: "correct" | "partial" | "incorrect";
-  explanation: string;         // markdown, waarom dit het oordeel is
-  suggestedLevel: number;      // 0-5, het niveau dat dit antwoord demonstreert
-  levelApplied: boolean;       // of de Progress daadwerkelijk is bijgewerkt
-  improvements: string[];      // concrete verbeterpunten
-  createdAt: string;           // ISO 8601
+  explanation: string; // markdown, waarom dit het oordeel is
+  suggestedLevel: number; // 0-5, het niveau dat dit antwoord demonstreert
+  levelApplied: boolean; // of de Progress daadwerkelijk is bijgewerkt
+  improvements: string[]; // concrete verbeterpunten
+  createdAt: string; // ISO 8601
 }
 ```
 
@@ -181,14 +188,15 @@ Spaced repetition planning per domein.
 ```typescript
 interface RetentionSchedule {
   domainId: string;
-  nextDue: string;             // ISO 8601
-  interval: number;            // dagen tot volgende herhaling
-  streak: number;              // aantal keer achtereen correct
+  nextDue: string; // ISO 8601
+  interval: number; // dagen tot volgende herhaling
+  streak: number; // aantal keer achtereen correct
   lastResult: "correct" | "partial" | "incorrect";
 }
 ```
 
 **Spaced repetition intervallen:**
+
 - Na correct: interval × 2.5 (1 → 3 → 7 → 17 → 42 dagen)
 - Na deels correct: interval × 1.2
 - Na incorrect: reset naar 1 dag
@@ -199,7 +207,8 @@ interface RetentionSchedule {
 
 Base URL: `https://{app}.deno.dev/api`
 
-Volgt Zalando API Guidelines waar van toepassing (kebab-case URLs, RFC 9457 errors, pagination via cursor).
+Volgt Zalando API Guidelines waar van toepassing (kebab-case URLs, RFC 9457
+errors, pagination via cursor).
 
 ### 2.1 Progress
 
@@ -210,6 +219,7 @@ PUT    /api/progress/{domainId}         → Progress
 ```
 
 **PUT body:**
+
 ```json
 {
   "level": 3,
@@ -318,7 +328,7 @@ get_pending_answers:
 get_recent_answers:
   description: "Haal antwoorden op die nog geen feedback hebben"
   params:
-    since?: string  # ISO 8601, default: 24 uur geleden
+    since?: string # ISO 8601, default: 24 uur geleden
   returns: Answer[]
 
 get_week_overview:
@@ -467,23 +477,26 @@ Secondary indexes via dubbele writes voor efficiente queries.
 
 ## 6. Niet-functionele beslissingen
 
-| Beslissing | Keuze | Rationale |
-|-----------|-------|-----------|
-| Runtime | Deno + Fresh | Native TypeScript, Deno Deploy hosting, Deno KV storage |
-| Auth | Simpele bearer token | Single-user systeem, geen complexe auth nodig |
-| MCP transport | SSE (Server-Sent Events) | Standaard MCP transport, werkt met Claude connectors |
-| Content format | Markdown | Universeel, renderbaar in Fresh, leesbaar als plain text |
-| API style | REST + RFC 9457 | Bekend terrein, Zalando-compatible |
-| Timezone | Europe/Amsterdam | Alle timestamps UTC, display in lokale tijd |
+| Beslissing     | Keuze                    | Rationale                                                |
+| -------------- | ------------------------ | -------------------------------------------------------- |
+| Runtime        | Deno + Fresh             | Native TypeScript, Deno Deploy hosting, Deno KV storage  |
+| Auth           | Simpele bearer token     | Single-user systeem, geen complexe auth nodig            |
+| MCP transport  | SSE (Server-Sent Events) | Standaard MCP transport, werkt met Claude connectors     |
+| Content format | Markdown                 | Universeel, renderbaar in Fresh, leesbaar als plain text |
+| API style      | REST + RFC 9457          | Bekend terrein, Zalando-compatible                       |
+| Timezone       | Europe/Amsterdam         | Alle timestamps UTC, display in lokale tijd              |
 
 ---
 
 ## 7. Open vragen
 
-1. **Notificaties**: push notifications in de app vs. alleen email via Gmail connector?
+1. **Notificaties**: push notifications in de app vs. alleen email via Gmail
+   connector?
 2. **Multi-device**: alleen browser of ook mobile-optimized?
-3. **Export**: wil je periodieke exports van je voortgang (bijv. als markdown of JSON)?
-4. **Versioning**: moeten we content-versies bijhouden (als de AI iets hergenerereert)?
+3. **Export**: wil je periodieke exports van je voortgang (bijv. als markdown of
+   JSON)?
+4. **Versioning**: moeten we content-versies bijhouden (als de AI iets
+   hergenerereert)?
 
 ## Consequences
 

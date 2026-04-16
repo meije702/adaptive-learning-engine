@@ -1,16 +1,14 @@
 # ADR-003: Bridge als kernprincipe & intake-fase
 
-**Status:** Proposed
-**Date:** 2026-04-03
-**Author:** Sander + Claude
+**Status:** Proposed **Date:** 2026-04-03 **Author:** Sander + Claude
 **Extends:** ADR-001, ADR-002
 
 ## Context
 
 De `bridge` structuur in ADR-002 was gedefinieerd als metadata op een domein:
-een statische mapping van bestaande kennis naar nieuwe kennis. Bij nadere analyse
-is de bridge niet slechts metadata — het is het fundamentele leerprincipe van het
-hele systeem.
+een statische mapping van bestaande kennis naar nieuwe kennis. Bij nadere
+analyse is de bridge niet slechts metadata — het is het fundamentele
+leerprincipe van het hele systeem.
 
 Elke stap in het leerproces is een transformatie van een `from`-state naar een
 `to`-state. Dit geldt op elk niveau: curriculum, fase, domein, week, dag. Het
@@ -35,33 +33,33 @@ haalbaarheid van het traject beoordeelt en adviseert voordat de cursus begint.
  * - `strategy` wordt bepaald door de AI op basis van de gap
  */
 interface Bridge {
-  from: BridgeState | null;       // null = blank slate
+  from: BridgeState | null; // null = blank slate
   to: BridgeState;
-  gap: GapAssessment;             // door AI ingevuld tijdens intake
-  strategy: LearningStrategy;     // door AI bepaald op basis van gap
+  gap: GapAssessment; // door AI ingevuld tijdens intake
+  strategy: LearningStrategy; // door AI bepaald op basis van gap
 }
 
 interface BridgeState {
-  label: string;                  // menselijk leesbaar
-  concepts: string[];             // kernconcepten in deze state
+  label: string; // menselijk leesbaar
+  concepts: string[]; // kernconcepten in deze state
   proficiency: "none" | "beginner" | "intermediate" | "advanced" | "expert";
 }
 
 interface GapAssessment {
   size: "small" | "moderate" | "large" | "very_large";
-  estimated_weeks: number;        // AI-schatting
-  risk_factors: string[];         // bijv. "geen netwerk-ervaring"
-  accelerators: string[];         // bijv. "sterke IaC-achtergrond"
-  feasible: boolean;              // is dit traject haalbaar in de geplande tijd?
-  recommendation?: string;        // AI-advies als feasible=false
+  estimated_weeks: number; // AI-schatting
+  risk_factors: string[]; // bijv. "geen netwerk-ervaring"
+  accelerators: string[]; // bijv. "sterke IaC-achtergrond"
+  feasible: boolean; // is dit traject haalbaar in de geplande tijd?
+  recommendation?: string; // AI-advies als feasible=false
 }
 
 type LearningStrategy =
-  | "analogy"                     // from is sterk → bouw voort op analogieën
-  | "first_principles"            // from is leeg → bouw op vanaf de basis
-  | "contrast"                    // from is verwant maar anders → vergelijk
-  | "scaffolded"                  // gap is groot → bouw tussenstappen in
-  | "accelerated";                // from is sterk én verwant → snel doorpakken
+  | "analogy" // from is sterk → bouw voort op analogieën
+  | "first_principles" // from is leeg → bouw op vanaf de basis
+  | "contrast" // from is verwant maar anders → vergelijk
+  | "scaffolded" // gap is groot → bouw tussenstappen in
+  | "accelerated"; // from is sterk én verwant → snel doorpakken
 ```
 
 ### 2. Bridges in de configuratie (herzien)
@@ -128,7 +126,7 @@ Wanneer `from` leeg is:
 ```yaml
 # Voorbeeld: iemand zonder cloud-ervaring die K8s wil leren
 bridge:
-  from: null                            # blank slate
+  from: null # blank slate
   to:
     label: "K8s & hybrid cloud engineer"
     concepts: ["Kubernetes", "containers", "hybrid cloud"]
@@ -149,9 +147,9 @@ Voordat de cursus begint, draait er een **intake** die het traject valideert.
 ```yaml
 # In learner.config.yaml
 intake:
-  completed: false                      # wordt true na de intake
+  completed: false # wordt true na de intake
   completed_at: null
-  result: null                          # wordt ingevuld door de AI
+  result: null # wordt ingevuld door de AI
 ```
 
 De intake is een gestructureerd gesprek:
@@ -197,19 +195,19 @@ De intake is een gestructureerd gesprek:
 
 ### 5. Gap-detectie tijdens het traject
 
-De intake is niet eenmalig. Het bridge-patroon werkt ook *tijdens* het traject:
+De intake is niet eenmalig. Het bridge-patroon werkt ook _tijdens_ het traject:
 
-- **Voor elke week**: de AI vergelijkt je huidige level (from) met het doel
-  van de module (to). Als de gap groter is dan verwacht (bijv. je scoorde
-  laag op een prerequisite), past de AI het weekplan aan.
+- **Voor elke week**: de AI vergelijkt je huidige level (from) met het doel van
+  de module (to). Als de gap groter is dan verwacht (bijv. je scoorde laag op
+  een prerequisite), past de AI het weekplan aan.
 
-- **Na elke assessment**: de AI herberekent de gap voor de resterende
-  domeinen. Als je sneller gaat dan gepland, kan het tempo omhoog. Als je
-  achterloopt, signaleert het systeem dit eerlijk.
+- **Na elke assessment**: de AI herberekent de gap voor de resterende domeinen.
+  Als je sneller gaat dan gepland, kan het tempo omhoog. Als je achterloopt,
+  signaleert het systeem dit eerlijk.
 
-- **Bij stretch-modules**: de gap is opzettelijk groot. Het systeem
-  communiceert dit expliciet: "Dit is een stretch — het doel is blootstelling,
-  niet beheersing."
+- **Bij stretch-modules**: de gap is opzettelijk groot. Het systeem communiceert
+  dit expliciet: "Dit is een stretch — het doel is blootstelling, niet
+  beheersing."
 
 ### 6. MCP tools voor intake en gap-analyse
 
@@ -221,8 +219,8 @@ Uitbreiding op ADR-001:
 run_intake:
   description: "Start de intake-fase. Leest configs, valideert profiel, en begint de nulmeting."
   params:
-    curriculum_config: string     # pad naar curriculum.config.yaml
-    learner_config: string        # pad naar learner.config.yaml
+    curriculum_config: string # pad naar curriculum.config.yaml
+    learner_config: string # pad naar learner.config.yaml
   returns: IntakeSession
 
 submit_intake_answer:
@@ -252,8 +250,10 @@ recalculate_gaps:
 ## Consequences
 
 - De bridge is niet langer metadata maar het kernprincipe van het hele systeem
-- Elke transformatie (curriculum, fase, domein, week, dag) volgt hetzelfde patroon
+- Elke transformatie (curriculum, fase, domein, week, dag) volgt hetzelfde
+  patroon
 - Blank slate leerlingen worden ondersteund met first-principles strategie
 - Het systeem is eerlijk over haalbaarheid via de intake en continue gap-analyse
 - De AI kiest automatisch de juiste didactische strategie op basis van de gap
-- Andere curricula kunnen dezelfde bridge-structuur gebruiken ongeacht het onderwerp
+- Andere curricula kunnen dezelfde bridge-structuur gebruiken ongeacht het
+  onderwerp

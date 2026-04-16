@@ -41,7 +41,11 @@ function statusToSlug(status: number): string {
 }
 
 export function notFound(detail: string, instance?: string): Response {
-  return problemResponse(404, { title: "Resource not found", detail, instance });
+  return problemResponse(404, {
+    title: "Resource not found",
+    detail,
+    instance,
+  });
 }
 
 export function badRequest(detail: string, instance?: string): Response {

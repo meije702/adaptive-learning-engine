@@ -15,25 +15,33 @@ export default define.page(function App({ Component, url }) {
           <div style="max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 1.5rem; height: 3rem; font-size: 0.875rem;">
             <a
               href="/"
-              style={`text-decoration: none; font-weight: 700; color: ${path === "/" ? "#3b82f6" : "#374151"};`}
+              style={`text-decoration: none; font-weight: 700; color: ${
+                path === "/" ? "#3b82f6" : "#374151"
+              };`}
             >
               Dashboard
             </a>
             <a
               href="/today"
-              style={`text-decoration: none; color: ${path === "/today" ? "#3b82f6" : "#6b7280"};`}
+              style={`text-decoration: none; color: ${
+                path === "/today" ? "#3b82f6" : "#6b7280"
+              };`}
             >
               Vandaag
             </a>
             <a
               href="/intake"
-              style={`text-decoration: none; color: ${path === "/intake" ? "#3b82f6" : "#6b7280"};`}
+              style={`text-decoration: none; color: ${
+                path === "/intake" ? "#3b82f6" : "#6b7280"
+              };`}
             >
               Intake
             </a>
             <a
               href="/retention"
-              style={`text-decoration: none; color: ${path === "/retention" ? "#3b82f6" : "#6b7280"};`}
+              style={`text-decoration: none; color: ${
+                path === "/retention" ? "#3b82f6" : "#6b7280"
+              };`}
             >
               Retentie
             </a>

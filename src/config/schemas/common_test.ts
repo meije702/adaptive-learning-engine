@@ -1,10 +1,12 @@
 import { describe, it } from "@std/testing/bdd";
 import { assertEquals } from "jsr:@std/assert";
-import { ProficiencySchema, BridgeSchema } from "./common.ts";
+import { BridgeSchema, ProficiencySchema } from "./common.ts";
 
 describe("ProficiencySchema", () => {
   it("should accept valid proficiency values", () => {
-    for (const value of ["none", "beginner", "intermediate", "advanced", "expert"]) {
+    for (
+      const value of ["none", "beginner", "intermediate", "advanced", "expert"]
+    ) {
       const result = ProficiencySchema.safeParse(value);
       assertEquals(result.success, true, `Expected "${value}" to be valid`);
     }

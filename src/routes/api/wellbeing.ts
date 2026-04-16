@@ -29,9 +29,7 @@ export const handler = define.handlers({
       intake: current?.intake ?? { completed: false },
       wellbeing: {
         status: body.status as "active" | "paused" | "returning",
-        pausedAt: body.status === "paused"
-          ? now
-          : current?.wellbeing?.pausedAt,
+        pausedAt: body.status === "paused" ? now : current?.wellbeing?.pausedAt,
         returnedAt: body.status === "returning" || body.status === "active"
           ? now
           : current?.wellbeing?.returnedAt,
@@ -52,6 +50,9 @@ export const handler = define.handlers({
       );
     }
 
-    return jsonResponse({ wellbeing: updated.wellbeing, retentionRecalculated });
+    return jsonResponse({
+      wellbeing: updated.wellbeing,
+      retentionRecalculated,
+    });
   },
 });

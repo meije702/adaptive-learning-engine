@@ -64,7 +64,9 @@ describe("validateSceneDocument", () => {
     const result = validateSceneDocument(doc);
     assertEquals(result.valid, false);
     assertEquals(
-      result.errors.some((e) => e.message.toLowerCase().includes("duplicate") || e.rule === "unique-ids"),
+      result.errors.some((e) =>
+        e.message.toLowerCase().includes("duplicate") || e.rule === "unique-ids"
+      ),
       true,
     );
   });

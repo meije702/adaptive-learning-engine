@@ -68,22 +68,25 @@ export default define.page(async function Dashboard(ctx) {
           href="/intake"
           style="display: block; padding: 1rem; margin-bottom: 1.5rem; background: #fef3c7; border: 1px solid #fde68a; border-radius: 0.5rem; color: #92400e; text-decoration: none;"
         >
-          <strong>Intake vereist</strong> — Voordat het leertraject kan beginnen
-          moet de intake worden doorlopen. Klik hier om te starten.
+          <strong>Intake vereist</strong>{" "}
+          — Voordat het leertraject kan beginnen moet de intake worden
+          doorlopen. Klik hier om te starten.
         </a>
       )}
 
       {/* Wellbeing banners */}
       {learnerState?.wellbeing?.status === "paused" && (
         <div style="padding: 1rem; margin-bottom: 1.5rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 0.5rem; color: #0c4a6e;">
-          <strong>Leertraject gepauzeerd</strong> — Neem de tijd die je nodig hebt.
-          Wanneer je klaar bent om terug te komen, laat het de AI coach weten.
+          <strong>Leertraject gepauzeerd</strong>{" "}
+          — Neem de tijd die je nodig hebt. Wanneer je klaar bent om terug te
+          komen, laat het de AI coach weten.
         </div>
       )}
       {learnerState?.wellbeing?.status === "returning" && (
         <div style="padding: 1rem; margin-bottom: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; color: #166534;">
-          <strong>Welkom terug</strong> — We beginnen rustig. De AI coach helpt
-          je om te herijken waar je gebleven was.
+          <strong>Welkom terug</strong>{" "}
+          — We beginnen rustig. De AI coach helpt je om te herijken waar je
+          gebleven was.
         </div>
       )}
 
@@ -98,7 +101,10 @@ export default define.page(async function Dashboard(ctx) {
       {/* Stats row */}
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
         <StatCard label="Voortgang" value={`${overallPct}%`} />
-        <a href={currentWeek > 0 ? `/week/${currentWeek}` : "#"} style="text-decoration: none; color: inherit;">
+        <a
+          href={currentWeek > 0 ? `/week/${currentWeek}` : "#"}
+          style="text-decoration: none; color: inherit;"
+        >
           <StatCard
             label="Huidige week"
             value={currentWeek > 0 ? `${currentWeek}` : "—"}
@@ -119,10 +125,9 @@ export default define.page(async function Dashboard(ctx) {
           style="display: block; text-decoration: none; color: inherit; margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;"
         >
           <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">
-            Week {currentPlan.weekNumber}: {
-              curriculum.domains.find((d) => d.id === currentPlan.domainId)
-                ?.name ?? currentPlan.domainId
-            }
+            Week {currentPlan.weekNumber}:{" "}
+            {curriculum.domains.find((d) => d.id === currentPlan.domainId)
+              ?.name ?? currentPlan.domainId}
           </h2>
           <p style="color: #4b5563;">{currentPlan.summary}</p>
         </a>
@@ -216,14 +221,20 @@ function DomainCard(
   return (
     <a
       href={`/week/${week}`}
-      style={`display: block; text-decoration: none; color: inherit; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; border-left: 4px solid ${LEVEL_COLORS[level]}; background: white;`}
+      style={`display: block; text-decoration: none; color: inherit; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; border-left: 4px solid ${
+        LEVEL_COLORS[level]
+      }; background: white;`}
     >
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem;">
         <span style="font-weight: 600; font-size: 0.875rem;">{name}</span>
         <span style="font-size: 0.75rem; color: #9ca3af;">W{week}</span>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style={`font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 9999px; background: ${LEVEL_COLORS[level]};`}>
+        <span
+          style={`font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 9999px; background: ${
+            LEVEL_COLORS[level]
+          };`}
+        >
           {LEVEL_LABELS[level]}
         </span>
       </div>

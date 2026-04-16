@@ -95,12 +95,42 @@ export function createTestConfig(): AppConfig {
         },
       },
       levels: [
-        { id: 0, label: "Unknown", description: "Not assessed", assessment_type: null },
-        { id: 1, label: "Conceptual", description: "Can explain", assessment_type: "theory" },
-        { id: 2, label: "Understanding", description: "Can relate", assessment_type: "comparison" },
-        { id: 3, label: "Application", description: "Can apply", assessment_type: "guided_practice" },
-        { id: 4, label: "Independent", description: "Can do alone", assessment_type: "open_scenario" },
-        { id: 5, label: "Expert", description: "Can teach", assessment_type: "architecture" },
+        {
+          id: 0,
+          label: "Unknown",
+          description: "Not assessed",
+          assessment_type: null,
+        },
+        {
+          id: 1,
+          label: "Conceptual",
+          description: "Can explain",
+          assessment_type: "theory",
+        },
+        {
+          id: 2,
+          label: "Understanding",
+          description: "Can relate",
+          assessment_type: "comparison",
+        },
+        {
+          id: 3,
+          label: "Application",
+          description: "Can apply",
+          assessment_type: "guided_practice",
+        },
+        {
+          id: 4,
+          label: "Independent",
+          description: "Can do alone",
+          assessment_type: "open_scenario",
+        },
+        {
+          id: 5,
+          label: "Expert",
+          description: "Can teach",
+          assessment_type: "architecture",
+        },
       ],
       phases: [
         {

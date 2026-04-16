@@ -8,7 +8,12 @@ export interface PhaseGapResult {
   avgLevel: number;
   targetLevel: number;
   gapSize: "small" | "moderate" | "large" | "very_large";
-  strategy: "analogy" | "first_principles" | "contrast" | "scaffolded" | "accelerated";
+  strategy:
+    | "analogy"
+    | "first_principles"
+    | "contrast"
+    | "scaffolded"
+    | "accelerated";
 }
 
 export interface DomainGapResult {
@@ -50,7 +55,9 @@ export function computeGapAnalysis(
       for (const prereqId of domain.prerequisites) {
         const prereqProgress = progressMap.get(prereqId);
         if (!prereqProgress || prereqProgress.level < 3) {
-          const prereqDomain = curriculum.domains.find((d) => d.id === prereqId);
+          const prereqDomain = curriculum.domains.find((d) =>
+            d.id === prereqId
+          );
           weakPrerequisites.push(prereqDomain?.name ?? prereqId);
         }
       }
@@ -89,7 +96,10 @@ export function computeGapAnalysis(
       strategy = "scaffolded";
     } else if (bridgeFrom.proficiency === "expert" && gapSize === "small") {
       strategy = "accelerated";
-    } else if (bridgeFrom.proficiency === "expert" || bridgeFrom.proficiency === "advanced") {
+    } else if (
+      bridgeFrom.proficiency === "expert" ||
+      bridgeFrom.proficiency === "advanced"
+    ) {
       strategy = "analogy";
     } else {
       strategy = "contrast";
@@ -125,7 +135,9 @@ export function computeGapAnalysis(
     for (const domain of phase.domains) {
       if (domain.weakPrerequisites.length > 0) {
         riskFactors.push(
-          `${domain.domainName} has weak prerequisites: ${domain.weakPrerequisites.join(", ")}`,
+          `${domain.domainName} has weak prerequisites: ${
+            domain.weakPrerequisites.join(", ")
+          }`,
         );
       }
     }

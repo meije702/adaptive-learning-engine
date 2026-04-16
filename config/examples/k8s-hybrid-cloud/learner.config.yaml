@@ -25,8 +25,8 @@ intake:
   result: null
 
 schedule:
-  rest_day: 0                           # 0=zondag
-  active_days: [1, 2, 3, 4, 5, 6]      # ma t/m za
+  rest_day: 0 # 0=zondag
+  active_days: [1, 2, 3, 4, 5, 6] # ma t/m za
 
   day_plan:
     1: "theory"

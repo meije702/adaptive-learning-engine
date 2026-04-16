@@ -144,8 +144,7 @@ export default function IntakeChat(
           <div style="display: flex; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb;">
             <textarea
               value={input}
-              onInput={(e) =>
-                setInput((e.target as HTMLTextAreaElement).value)}
+              onInput={(e) => setInput((e.target as HTMLTextAreaElement).value)}
               onKeyDown={handleKeyDown}
               placeholder="Typ je antwoord..."
               disabled={sending}

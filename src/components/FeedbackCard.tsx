@@ -62,8 +62,7 @@ export function FeedbackCard({ feedback }: FeedbackCardProps) {
         )
         : (
           <div>
-            <strong>Feedback ({feedback.score}):</strong>{" "}
-            {feedback.explanation}
+            <strong>Feedback ({feedback.score}):</strong> {feedback.explanation}
           </div>
         )}
 

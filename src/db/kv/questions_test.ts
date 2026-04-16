@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "@std/testing/bdd";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { assertEquals, assertNotEquals } from "jsr:@std/assert";
 import { createTestKv } from "@/test_helpers.ts";
 import type { Repositories } from "@/db/repositories.ts";
@@ -46,7 +46,8 @@ describe("KvQuestionRepository", () => {
           domainId: "domain-a",
           sequence: 2,
           type: "open",
-          body: "Explain the difference between a Deployment and a StatefulSet.",
+          body:
+            "Explain the difference between a Deployment and a StatefulSet.",
           maxLevel: 4,
           deadline: new Date(Date.now() + 86400000).toISOString(),
         },
@@ -109,14 +110,18 @@ describe("KvQuestionRepository", () => {
         },
       ]);
 
-      const found = await repos.questions.getByCheckpoint("checkpoint-deploy-1");
+      const found = await repos.questions.getByCheckpoint(
+        "checkpoint-deploy-1",
+      );
       assertNotEquals(found, null);
       assertEquals(found!.id, created.id);
       assertEquals(found!.scrimCheckpoint, "checkpoint-deploy-1");
     });
 
     it("should return null for a non-existent checkpoint", async () => {
-      const result = await repos.questions.getByCheckpoint("no-such-checkpoint");
+      const result = await repos.questions.getByCheckpoint(
+        "no-such-checkpoint",
+      );
       assertEquals(result, null);
     });
   });

@@ -2,13 +2,13 @@
 
 This document describes how the Adaptive Learning Engine works and why each
 design decision was made. It is the operational reference for anyone building
-on, configuring, or extending the system — including AI agents that act as
-the coaching component.
+on, configuring, or extending the system — including AI agents that act as the
+coaching component.
 
 For the scientific evidence behind these decisions, see
 `docs/research/learning-science.md`. For technical data models and API
-specifications, see the ADRs in `docs/adr/`. For the project philosophy,
-see `DESIGN.md`.
+specifications, see the ADRs in `docs/adr/`. For the project philosophy, see
+`DESIGN.md`.
 
 ---
 
@@ -17,30 +17,28 @@ see `DESIGN.md`.
 The system consists of two decoupled components connected by a protocol.
 
 **The web application** is the system of record. It stores all learning data:
-progress, generated content, questions, answers, feedback, and wellbeing
-state. It serves the user interface. It exposes a REST API for data access
-and an MCP server for AI agent interaction. The web application is
-AI-agnostic — it functions as a standalone learning tracker without any
-agent connected.
+progress, generated content, questions, answers, feedback, and wellbeing state.
+It serves the user interface. It exposes a REST API for data access and an MCP
+server for AI agent interaction. The web application is AI-agnostic — it
+functions as a standalone learning tracker without any agent connected.
 
 **The AI agent** is the coaching intelligence. It reads learner progress,
 generates content, evaluates answers, adjusts the learning path, and
-communicates with the learner. The agent operates exclusively through the
-MCP protocol, reading from and writing to the web application. It never
-holds state independently — everything it produces is persisted in the
-application.
+communicates with the learner. The agent operates exclusively through the MCP
+protocol, reading from and writing to the web application. It never holds state
+independently — everything it produces is persisted in the application.
 
-**The MCP server** is the contract between application and agent. It
-exposes tools grouped into three categories: reading (observe the learner's
-state), writing (generate content and feedback), and steering (adjust
-progress and scheduling). Any AI system that implements this tool interface
-can serve as the coaching agent. The full tool specification is in
+**The MCP server** is the contract between application and agent. It exposes
+tools grouped into three categories: reading (observe the learner's state),
+writing (generate content and feedback), and steering (adjust progress and
+scheduling). Any AI system that implements this tool interface can serve as the
+coaching agent. The full tool specification is in
 `docs/adr/001-data-model-api.md`.
 
-All domain knowledge, learner preferences, and operational parameters live
-in three configuration files. The codebase contains zero domain-specific
-logic. See `docs/adr/002-configuration-first.md` for the configuration
-schema and `config/examples/` for a complete working example.
+All domain knowledge, learner preferences, and operational parameters live in
+three configuration files. The codebase contains zero domain-specific logic. See
+`docs/adr/002-configuration-first.md` for the configuration schema and
+`config/examples/` for a complete working example.
 
 ---
 
@@ -48,61 +46,59 @@ schema and `config/examples/` for a complete working example.
 
 ### 2.1 The weekly cycle
 
-Learning is organized in weekly cycles. Each week focuses on one primary
-domain from the curriculum, though retention activities draw from all
-previously covered domains. The specific activity for each day is defined
-in `learner.config → schedule.day_plan` and is fully configurable. One day
-per week is designated as a rest day in which the learner receives no
-activities and the agent prepares the following week.
+Learning is organized in weekly cycles. Each week focuses on one primary domain
+from the curriculum, though retention activities draw from all previously
+covered domains. The specific activity for each day is defined in
+`learner.config → schedule.day_plan` and is fully configurable. One day per week
+is designated as a rest day in which the learner receives no activities and the
+agent prepares the following week.
 
 A typical week follows this rhythm:
 
-**Day 1 — Theory with provocation.** The session opens with a short
-provocative question related to the new domain. This is not an assessment
-and carries no score. Its purpose is to activate prior knowledge and create
-curiosity — a need to know — before the learner encounters the theory.
-The learner writes a brief response, then reads the theory briefing. The
-briefing connects new concepts to existing knowledge using the bridge
-mappings defined in the curriculum configuration. It ends with a small
-number of key takeaways, never exceeding the cognitive budget defined in
-system configuration.
+**Day 1 — Theory with provocation.** The session opens with a short provocative
+question related to the new domain. This is not an assessment and carries no
+score. Its purpose is to activate prior knowledge and create curiosity — a need
+to know — before the learner encounters the theory. The learner writes a brief
+response, then reads the theory briefing. The briefing connects new concepts to
+existing knowledge using the bridge mappings defined in the curriculum
+configuration. It ends with a small number of key takeaways, never exceeding the
+cognitive budget defined in system configuration.
 
 This design draws on two research findings. Productive failure research
-(Kapur, 2008) shows that engaging with a problem before instruction
-deepens conceptual understanding. However, a full unsupported problem
-after a weekend of assessment would feel punitive, so the provocation is
-deliberately lightweight — a single question, not an assignment. Cognitive
-load theory (Sweller, 1988) constrains the briefing to a maximum number
-of new concepts per session, configurable in `system.config →
+(Kapur, 2008) shows that engaging with a problem before instruction deepens
+conceptual understanding. However, a full unsupported problem after a weekend of
+assessment would feel punitive, so the provocation is deliberately lightweight —
+a single question, not an assignment. Cognitive load theory (Sweller, 1988)
+constrains the briefing to a maximum number of new concepts per session,
+configurable in `system.config →
 content.cognitive_budget`.
 
-**Day 1 — Explain-back.** Later the same day or the next morning, the
-learner explains the concept back to the agent in their own words, through
-text or voice. This is a conversation, not an exam. The agent responds as
-a coach — acknowledging what was understood well, gently probing
-misconceptions, asking follow-up questions.
+**Day 1 — Explain-back.** Later the same day or the next morning, the learner
+explains the concept back to the agent in their own words, through text or
+voice. This is a conversation, not an exam. The agent responds as a coach —
+acknowledging what was understood well, gently probing misconceptions, asking
+follow-up questions.
 
-The explain-back serves three purposes simultaneously. It is retrieval
-practice (Roediger & Karpicke, 2006; effect size d = 0.74), which
-strengthens memory far more than re-reading. It is self-explanation (Chi
-et al., 1989; effect size d = 0.78), which deepens encoding. And it is a
-diagnostic signal — the agent uses the explanation to gauge understanding
-and adjust the difficulty of upcoming practice sessions. If the
-explain-back reveals that the concept did not land, the agent may simplify
-the week's exercises, extend the topic into the following week, or split
-it into sub-topics.
+The explain-back serves three purposes simultaneously. It is retrieval practice
+(Roediger & Karpicke, 2006; effect size d = 0.74), which strengthens memory far
+more than re-reading. It is self-explanation (Chi et al., 1989; effect size d =
+0.78), which deepens encoding. And it is a diagnostic signal — the agent uses
+the explanation to gauge understanding and adjust the difficulty of upcoming
+practice sessions. If the explain-back reveals that the concept did not land,
+the agent may simplify the week's exercises, extend the topic into the following
+week, or split it into sub-topics.
 
 **Days 2–4 — Progressive practice.** Three practice sessions increase in
-autonomy. The first is guided: step-by-step with hints available. The
-second is open: a scenario without prescribed steps. The third is
-troubleshooting: a broken scenario that must be diagnosed and fixed. Each
-session is generated by the agent after evaluating the previous day's
-answers, so the difficulty and focus adapt daily.
+autonomy. The first is guided: step-by-step with hints available. The second is
+open: a scenario without prescribed steps. The third is troubleshooting: a
+broken scenario that must be diagnosed and fixed. Each session is generated by
+the agent after evaluating the previous day's answers, so the difficulty and
+focus adapt daily.
 
-This progression implements scaffolding and fading, grounded in
-Vygotsky's Zone of Proximal Development and Wood, Bruner, and Ross's
-(1976) scaffolding framework. Support is gradually removed as competence
-grows. The scaffolding intensity at each competence level is defined in
+This progression implements scaffolding and fading, grounded in Vygotsky's Zone
+of Proximal Development and Wood, Bruner, and Ross's (1976) scaffolding
+framework. Support is gradually removed as competence grows. The scaffolding
+intensity at each competence level is defined in
 `curriculum.config → scaffolding_profile`:
 
 - Level 0–1: full scaffolding — complete worked examples, step-by-step
@@ -110,61 +106,60 @@ grows. The scaffolding intensity at each competence level is defined in
 - Level 3: minimal — only the problem statement, hints on request
 - Level 4–5: none — open scenario, no guidance
 
-This directly addresses the expertise reversal effect (Kalyuga et al.,
-2003): instructional supports that help novices become counterproductive
-for advanced learners. The system adapts scaffolding to the individual,
-not the curriculum stage.
+This directly addresses the expertise reversal effect (Kalyuga et al., 2003):
+instructional supports that help novices become counterproductive for advanced
+learners. The system adapts scaffolding to the individual, not the curriculum
+stage.
 
-**Day 5 — Assessment.** A scenario-based assessment generated after
-evaluating all preceding days' work. The assessment specifically targets
-areas where the learner showed weakness during the week. It is never a
-generic quiz — it is tailored to this learner's demonstrated gaps.
+**Day 5 — Assessment.** A scenario-based assessment generated after evaluating
+all preceding days' work. The assessment specifically targets areas where the
+learner showed weakness during the week. It is never a generic quiz — it is
+tailored to this learner's demonstrated gaps.
 
 The assessment uses authentic tasks (Wiggins, 1990) that mirror real-world
 performance rather than testing isolated recall. Question types include
-scenarios, open-ended problems, multiple-choice with realistic distractors,
-and troubleshooting exercises. The specific types are configured in
+scenarios, open-ended problems, multiple-choice with realistic distractors, and
+troubleshooting exercises. The specific types are configured in
 `system.config → content.assessment.question_types`.
 
-**Day 5–6 — Submission and feedback.** The learner has until the
-configured deadline to complete the assessment. This deliberate separation
-between assessment and feedback gives the learner time to work without
-pressure and read feedback at a calm moment.
+**Day 5–6 — Submission and feedback.** The learner has until the configured
+deadline to complete the assessment. This deliberate separation between
+assessment and feedback gives the learner time to work without pressure and read
+feedback at a calm moment.
 
 **Rest day — Agent preparation.** On the rest day, the agent performs its
 heaviest work: analyzing the full week's data, writing a retrospective,
-recalculating gap analyses for remaining domains, and generating all
-content for the coming week's first day. The learner receives nothing.
+recalculating gap analyses for remaining domains, and generating all content for
+the coming week's first day. The learner receives nothing.
 
 ### 2.2 Daily retention
 
-Every active day includes 1–3 short retention questions drawn from
-previously completed domains. These implement spaced repetition using the
-SM-2 algorithm: each concept tracks its own easiness factor, interval, and
-repetition count. The optimal review point targets 85–90% recall
-probability — difficult enough to strengthen memory, not so late that
-relearning is required.
+Every active day includes 1–3 short retention questions drawn from previously
+completed domains. These implement spaced repetition using the SM-2 algorithm:
+each concept tracks its own easiness factor, interval, and repetition count. The
+optimal review point targets 85–90% recall probability — difficult enough to
+strengthen memory, not so late that relearning is required.
 
-Retention questions are deliberately interleaved across domains.
-Research shows interleaving triples test performance compared to blocked
-practice (Rohrer & Taylor, 2007; d = 1.34) because it forces
-discriminative contrast — the learner must identify which strategy applies,
-not just execute a familiar procedure. The minimum number of domains mixed
-per session is configurable in `system.config → retention.interleaving`.
+Retention questions are deliberately interleaved across domains. Research shows
+interleaving triples test performance compared to blocked practice (Rohrer &
+Taylor, 2007; d = 1.34) because it forces discriminative contrast — the learner
+must identify which strategy applies, not just execute a familiar procedure. The
+minimum number of domains mixed per session is configurable in
+`system.config → retention.interleaving`.
 
-Retention intervals follow SM-2 mechanics: after a correct answer, the
-interval multiplies by the item's easiness factor (default 2.5). After a
-partially correct answer, the interval grows modestly. After an incorrect
-answer, the interval resets and the easiness factor decreases. This is
-configured in `system.config → retention` and tracked per concept, not
-per domain — because a learner may have mastered Pod lifecycles but still
-struggle with init containers, even though both fall under the same domain.
+Retention intervals follow SM-2 mechanics: after a correct answer, the interval
+multiplies by the item's easiness factor (default 2.5). After a partially
+correct answer, the interval grows modestly. After an incorrect answer, the
+interval resets and the easiness factor decreases. This is configured in
+`system.config → retention` and tracked per concept, not per domain — because a
+learner may have mastered Pod lifecycles but still struggle with init
+containers, even though both fall under the same domain.
 
 ### 2.3 The content generation chain
 
-Content is never pre-generated in bulk. Each day's content is generated by
-the agent after evaluating the previous day's answers. This creates a
-feedback chain:
+Content is never pre-generated in bulk. Each day's content is generated by the
+agent after evaluating the previous day's answers. This creates a feedback
+chain:
 
     Sunday evening:  agent reads week results → generates Monday theory
     Monday evening:  agent reads explain-back → generates Tuesday practice
@@ -172,10 +167,10 @@ feedback chain:
     ...and so on
 
 The exact timing is configured in `learner.config → schedule.generation_time`.
-The critical property is that tomorrow's content is always informed by
-today's performance. A learner who struggled with Tuesday's guided exercise
-receives a Wednesday open exercise that revisits the same concepts from a
-different angle, rather than blindly advancing to the next topic.
+The critical property is that tomorrow's content is always informed by today's
+performance. A learner who struggled with Tuesday's guided exercise receives a
+Wednesday open exercise that revisits the same concepts from a different angle,
+rather than blindly advancing to the next topic.
 
 ---
 
@@ -183,118 +178,112 @@ different angle, rather than blindly advancing to the next topic.
 
 ### 3.1 Coaching, not instructing
 
-The agent's role is coach, not lecturer. A lecturer transmits information.
-A coach makes expert thinking visible, asks questions that guide discovery,
-and progressively releases responsibility to the learner. This distinction
-is grounded in Collins, Brown, and Newman's (1989) cognitive apprenticeship
-model and is operationalized through specific behaviors.
+The agent's role is coach, not lecturer. A lecturer transmits information. A
+coach makes expert thinking visible, asks questions that guide discovery, and
+progressively releases responsibility to the learner. This distinction is
+grounded in Collins, Brown, and Newman's (1989) cognitive apprenticeship model
+and is operationalized through specific behaviors.
 
-When a learner asks a conceptual question, the agent does not answer
-directly. It asks a counter-question that guides the learner toward the
-answer: "What do you think would happen if..." or "How does this compare
-to what you know about..." This is the Socratic method, which research
-shows improves knowledge gains by approximately 45% in one-on-one contexts.
-Only after two unsuccessful attempts does the agent provide the answer with
-explanation.
+When a learner asks a conceptual question, the agent does not answer directly.
+It asks a counter-question that guides the learner toward the answer: "What do
+you think would happen if..." or "How does this compare to what you know
+about..." This is the Socratic method, which research shows improves knowledge
+gains by approximately 45% in one-on-one contexts. Only after two unsuccessful
+attempts does the agent provide the answer with explanation.
 
-When a learner asks a factual question — syntax, command flags, API
-signatures — the agent answers directly. The Socratic method is for
-building understanding, not for withholding reference information.
+When a learner asks a factual question — syntax, command flags, API signatures —
+the agent answers directly. The Socratic method is for building understanding,
+not for withholding reference information.
 
 The coaching tone is configured in `learner.config → preferences.tone` and
-adapts to the learner's profile. Regardless of tone setting, the agent
-always treats the learner as a professional colleague, never as a student.
-It is direct, technically precise, and honest about gaps.
+adapts to the learner's profile. Regardless of tone setting, the agent always
+treats the learner as a professional colleague, never as a student. It is
+direct, technically precise, and honest about gaps.
 
 ### 3.2 Feedback structure
 
 Every piece of feedback follows a three-part structure based on Hattie and
 Timperley's (2007) model (effect size d = 0.48–0.79):
 
-**Feed-up** — where is the learner going? Connects the current activity to
-the learning goal and the broader bridge. "You're working toward being able
-to independently configure RBAC — that's essential for your CKA goal."
+**Feed-up** — where is the learner going? Connects the current activity to the
+learning goal and the broader bridge. "You're working toward being able to
+independently configure RBAC — that's essential for your CKA goal."
 
-**Feed-back** — how is the learner doing? Specific, evidence-based
-evaluation of the current work. Never vague praise ("good job") or
-person-level evaluation ("you're smart"). Always at the task, process, or
-self-regulation level.
+**Feed-back** — how is the learner doing? Specific, evidence-based evaluation of
+the current work. Never vague praise ("good job") or person-level evaluation
+("you're smart"). Always at the task, process, or self-regulation level.
 
 **Feed-forward** — what is the next step? The most important component.
 Concrete, actionable guidance for improvement. "Focus on practicing
-NetworkPolicy selectors — try creating a policy that allows traffic only
-from pods with a specific label."
+NetworkPolicy selectors — try creating a policy that allows traffic only from
+pods with a specific label."
 
-Feedback operates at three levels, and the agent should consciously target
-the most impactful level for each situation:
+Feedback operates at three levels, and the agent should consciously target the
+most impactful level for each situation:
 
-- **Task level** — "This YAML is missing the namespace field." Useful for
-  error correction but produces the least durable learning.
+- **Task level** — "This YAML is missing the namespace field." Useful for error
+  correction but produces the least durable learning.
 - **Process level** — "You jumped to the solution without checking the pod
   events first. Try a systematic debugging sequence." Promotes deeper
   understanding of approach and strategy.
-- **Self-regulation level** — "Notice that you tend to skip the planning
-  step when under time pressure. What would happen if you spent 30 seconds
-  outlining your approach first?" The most powerful level, as it builds
-  metacognitive awareness.
+- **Self-regulation level** — "Notice that you tend to skip the planning step
+  when under time pressure. What would happen if you spent 30 seconds outlining
+  your approach first?" The most powerful level, as it builds metacognitive
+  awareness.
 
-Research shows that approximately 32% of feedback effects are negative
-(Kluger & DeNisi, 1996). The primary causes: feedback about the person
-rather than the work, vague or delayed feedback, and feedback that
-threatens autonomy. The agent avoids all three.
+Research shows that approximately 32% of feedback effects are negative (Kluger &
+DeNisi, 1996). The primary causes: feedback about the person rather than the
+work, vague or delayed feedback, and feedback that threatens autonomy. The agent
+avoids all three.
 
 ### 3.3 Dual coding in content
 
-Every theory briefing includes at least one visual representation — a
-diagram, schematic, or architectural illustration — integrated with the
-text, not separated from it. This implements Paivio's dual coding theory
-and Mayer's multimedia learning principles, which show that spatial
-contiguity (placing words near corresponding visuals) produces an effect
-size of d = 1.10.
+Every theory briefing includes at least one visual representation — a diagram,
+schematic, or architectural illustration — integrated with the text, not
+separated from it. This implements Paivio's dual coding theory and Mayer's
+multimedia learning principles, which show that spatial contiguity (placing
+words near corresponding visuals) produces an effect size of d = 1.10.
 
-The agent never generates a wall of text when a concept has spatial,
-structural, or processual qualities that can be visualized. Architecture
-diagrams, network topologies, data flow illustrations, and state
-transitions should all be rendered visually alongside textual explanation.
+The agent never generates a wall of text when a concept has spatial, structural,
+or processual qualities that can be visualized. Architecture diagrams, network
+topologies, data flow illustrations, and state transitions should all be
+rendered visually alongside textual explanation.
 
 ### 3.4 Metacognitive scaffolding
 
 The agent explicitly builds self-regulation skills following Zimmerman's
 (1989, 2000) cyclical model:
 
-**Forethought** — at the start of each session, the agent may ask: "What
-is your goal for this session?" or "What strategy do you plan to use?"
-This activates intentional learning rather than passive consumption.
+**Forethought** — at the start of each session, the agent may ask: "What is your
+goal for this session?" or "What strategy do you plan to use?" This activates
+intentional learning rather than passive consumption.
 
-**Monitoring** — during longer exercises, the agent includes check-in
-prompts: "Are you understanding this so far?" or "Would a different
-approach be helpful here?" This normalizes self-monitoring as part of the
-learning process.
+**Monitoring** — during longer exercises, the agent includes check-in prompts:
+"Are you understanding this so far?" or "Would a different approach be helpful
+here?" This normalizes self-monitoring as part of the learning process.
 
-**Reflection** — after each assessment, the learner is invited to reflect:
-"How do you think you did? What would you do differently?" The agent
-compares the learner's self-assessment to the actual result. The gap
-between prediction and reality is itself a calibration signal.
+**Reflection** — after each assessment, the learner is invited to reflect: "How
+do you think you did? What would you do differently?" The agent compares the
+learner's self-assessment to the actual result. The gap between prediction and
+reality is itself a calibration signal.
 
-Research on metacognition shows +7–8 months of additional academic
-progress per year (Education Endowment Foundation). Crucially,
-metacognitive strategies must be embedded in domain-specific content, not
-taught as abstract skills.
+Research on metacognition shows +7–8 months of additional academic progress per
+year (Education Endowment Foundation). Crucially, metacognitive strategies must
+be embedded in domain-specific content, not taught as abstract skills.
 
 ### 3.5 Calibration
 
-Learners are unreliable self-assessors. Kruger and Dunning (1999) showed
-that the lowest-performing participants estimated themselves at the 62nd
-percentile. The system counteracts this through calibration checkpoints:
-after each assessment, the learner estimates their own competence level
-before seeing the agent's evaluation. The system tracks the delta over
-time and surfaces patterns: "You consistently rate yourself higher on
-networking topics than your assessment results show — this might be an
-area to revisit."
+Learners are unreliable self-assessors. Kruger and Dunning (1999) showed that
+the lowest-performing participants estimated themselves at the 62nd percentile.
+The system counteracts this through calibration checkpoints: after each
+assessment, the learner estimates their own competence level before seeing the
+agent's evaluation. The system tracks the delta over time and surfaces patterns:
+"You consistently rate yourself higher on networking topics than your assessment
+results show — this might be an area to revisit."
 
 Calibration is never framed as criticism. It is presented as useful
-self-knowledge: knowing where your confidence exceeds your competence is
-as valuable as knowing the subject matter.
+self-knowledge: knowing where your confidence exceeds your competence is as
+valuable as knowing the subject matter.
 
 ---
 
@@ -302,90 +291,90 @@ as valuable as knowing the subject matter.
 
 ### 4.1 The bridge principle
 
-Every step in the learning process is a transformation from a known state
-(from) to a desired state (to). This is the bridge — the system's core
-recursive principle that operates at every level: curriculum, phase,
-domain, week, and day.
+Every step in the learning process is a transformation from a known state (from)
+to a desired state (to). This is the bridge — the system's core recursive
+principle that operates at every level: curriculum, phase, domain, week, and
+day.
 
 The from-state determines the teaching strategy:
 
-| From-state | Strategy | Agent behavior |
-|---|---|---|
-| Strong and related | Analogy | Build on what the learner knows. Reference bridge mappings from curriculum config. |
-| Empty (null) | First principles | No analogies. Start with why the concept exists. More visual, slower pace. |
-| Related but different | Contrast | Compare the two systems. Emphasize where they diverge. |
-| Large gap | Scaffolded | Insert intermediate steps. Split the domain into sub-bridges. |
-| Strong, small gap | Accelerated | Less theory, more challenge. Move quickly. |
+| From-state            | Strategy         | Agent behavior                                                                     |
+| --------------------- | ---------------- | ---------------------------------------------------------------------------------- |
+| Strong and related    | Analogy          | Build on what the learner knows. Reference bridge mappings from curriculum config. |
+| Empty (null)          | First principles | No analogies. Start with why the concept exists. More visual, slower pace.         |
+| Related but different | Contrast         | Compare the two systems. Emphasize where they diverge.                             |
+| Large gap             | Scaffolded       | Insert intermediate steps. Split the domain into sub-bridges.                      |
+| Strong, small gap     | Accelerated      | Less theory, more challenge. Move quickly.                                         |
 
-The from-state may be empty. Not every learner has prior knowledge for
-every domain. The system detects this from the curriculum configuration
-and the learner profile, and the agent adjusts accordingly — no
-analogies are offered when there is nothing to compare to.
+The from-state may be empty. Not every learner has prior knowledge for every
+domain. The system detects this from the curriculum configuration and the
+learner profile, and the agent adjusts accordingly — no analogies are offered
+when there is nothing to compare to.
 
 When the gap between from and to is unrealistically large for the planned
-timeframe, the system is honest about it. It advises a longer trajectory,
-a different goal, or an intermediate step. The learner decides — the
-system advises.
+timeframe, the system is honest about it. It advises a longer trajectory, a
+different goal, or an intermediate step. The learner decides — the system
+advises.
 
 Full specification of the bridge data structures and gap analysis is in
 `docs/adr/003-bridge-principle-intake.md`.
 
 ### 4.2 Competence levels and the Dreyfus model
 
-The system tracks competence on a 0–5 scale per domain. These levels map
-to the Dreyfus model of skill acquisition, and each level implies a
-different instructional approach:
+The system tracks competence on a 0–5 scale per domain. These levels map to the
+Dreyfus model of skill acquisition, and each level implies a different
+instructional approach:
 
-| Level | Label | Dreyfus stage | Assessment type | Scaffolding |
-|---|---|---|---|---|
-| 0 | Unknown | Pre-novice | Not assessed | — |
-| 1 | Conceptual | Novice | Theory question | Full worked examples |
-| 2 | Understanding | Adv. beginner | Comparison question | Guided with hints |
-| 3 | Application | Competent | Guided practice | Minimal, hints on request |
-| 4 | Independent | Proficient | Open scenario | None |
-| 5 | Expert | Expert | Architecture challenge | None, peer-teaching tasks |
+| Level | Label         | Dreyfus stage | Assessment type        | Scaffolding               |
+| ----- | ------------- | ------------- | ---------------------- | ------------------------- |
+| 0     | Unknown       | Pre-novice    | Not assessed           | —                         |
+| 1     | Conceptual    | Novice        | Theory question        | Full worked examples      |
+| 2     | Understanding | Adv. beginner | Comparison question    | Guided with hints         |
+| 3     | Application   | Competent     | Guided practice        | Minimal, hints on request |
+| 4     | Independent   | Proficient    | Open scenario          | None                      |
+| 5     | Expert        | Expert        | Architecture challenge | None, peer-teaching tasks |
 
 The levels, their labels, and their assessment types are defined in
 `curriculum.config → levels` and are fully customizable per curriculum.
 
-A learner does not advance levels by completing activities. A learner
-advances by demonstrating competence through assessment. Time is the
-variable; performance is the constant. This is mastery learning (Bloom,
-1984), which produces effect sizes of d = 0.59 in group settings and
-up to 2 standard deviations in one-on-one tutoring.
+A learner does not advance levels by completing activities. A learner advances
+by demonstrating competence through assessment. Time is the variable;
+performance is the constant. This is mastery learning (Bloom, 1984), which
+produces effect sizes of d = 0.59 in group settings and up to 2 standard
+deviations in one-on-one tutoring.
 
 ### 4.3 Pacing belongs to the learner
 
-The week numbers in the curriculum configuration are suggestions, not
-deadlines. If a learner needs three weeks for a domain planned for one
-week, the system accommodates this without framing it as delay or failure.
-The estimated total duration is continuously recalculated based on actual
-progress. The agent communicates this transparently: "Based on your pace
-so far, the full trajectory will take approximately N weeks instead of the
-originally estimated M. This is normal — the curriculum adapts to you."
+The week numbers in the curriculum configuration are suggestions, not deadlines.
+If a learner needs three weeks for a domain planned for one week, the system
+accommodates this without framing it as delay or failure. The estimated total
+duration is continuously recalculated based on actual progress. The agent
+communicates this transparently: "Based on your pace so far, the full trajectory
+will take approximately N weeks instead of the originally estimated M. This is
+normal — the curriculum adapts to you."
 
-If a learner progresses faster than planned, the agent may suggest
-acceleration: combining domains, reducing scaffolding, or skipping directly
-to assessment for domains where the intake showed strong prior knowledge.
+If a learner progresses faster than planned, the agent may suggest acceleration:
+combining domains, reducing scaffolding, or skipping directly to assessment for
+domains where the intake showed strong prior knowledge.
 
 ### 4.4 Continuous gap recalculation
 
 After every assessment, the agent recalculates the gap for all remaining
-domains. This serves two functions: detecting when a learner is ahead or
-behind the expected trajectory, and identifying when prerequisite gaps
-affect upcoming domains.
+domains. This serves two functions: detecting when a learner is ahead or behind
+the expected trajectory, and identifying when prerequisite gaps affect upcoming
+domains.
 
-If a learner scores poorly on networking, and the upcoming security domain
-has networking as a prerequisite, the agent may insert a remediation week
-before advancing — or restructure the security module to revisit the
-specific networking concepts that were weak.
+If a learner scores poorly on networking, and the upcoming security domain has
+networking as a prerequisite, the agent may insert a remediation week before
+advancing — or restructure the security module to revisit the specific
+networking concepts that were weak.
 
 ### 4.5 The explain-back as adaptive signal
 
-The explain-back on theory day provides the earliest signal of
-comprehension for each new topic. If a learner's explanation reveals
-fundamental misconceptions, the agent does not wait until the Friday
-assessment to respond. It adjusts immediately:
+The explain-back on theory day provides the earliest signal of comprehension for
+each new topic. If a learner's explanation reveals fundamental misconceptions,
+the agent does not wait until the Friday assessment to respond. It adjusts
+immediately:
 
 - Simplifies Tuesday's guided practice to focus on the misunderstood concept
 - Generates additional visual explanations using different metaphors
@@ -401,39 +390,38 @@ This is adaptive learning at the session level, not just the week level.
 ### 5.1 The pause
 
 At any time, the learner can pause all learning activities. This is a
-first-class system feature, not an edge case. Pressing pause immediately
-stops all scheduled content generation, retention questions, and
-notifications. The system enters a quiet state. No reminders, no guilt,
-no countdown.
+first-class system feature, not an edge case. Pressing pause immediately stops
+all scheduled content generation, retention questions, and notifications. The
+system enters a quiet state. No reminders, no guilt, no countdown.
 
-Life happens. A learner may face personal challenges, work pressure,
-health issues, or simply need a break. The system respects this without
-judgment. The pause is not logged as "inactivity" or "missed weeks." The
-dashboard does not show red indicators or warnings about falling behind.
+Life happens. A learner may face personal challenges, work pressure, health
+issues, or simply need a break. The system respects this without judgment. The
+pause is not logged as "inactivity" or "missed weeks." The dashboard does not
+show red indicators or warnings about falling behind.
 
 This design is grounded in self-determination theory (Ryan & Deci, 2000):
-autonomy — the sense that one's actions are self-endorsed — is a
-foundational psychological need. A system that pressures learners to
-continue when they cannot undermines the very motivation it depends on.
+autonomy — the sense that one's actions are self-endorsed — is a foundational
+psychological need. A system that pressures learners to continue when they
+cannot undermines the very motivation it depends on.
 
 ### 5.2 The return
 
-When the learner chooses to resume, the system does not immediately
-present an assessment or quiz. It begins with a soft intake: a guided
-conversation focused on wellbeing first, learning second.
+When the learner chooses to resume, the system does not immediately present an
+assessment or quiz. It begins with a soft intake: a guided conversation focused
+on wellbeing first, learning second.
 
-The agent starts with how the learner is doing, not what they remember.
-Only after the learner confirms readiness does the agent gently explore
-what knowledge may have faded — not to judge, but to know where to resume.
-This is framed as a recalibration, not a test.
+The agent starts with how the learner is doing, not what they remember. Only
+after the learner confirms readiness does the agent gently explore what
+knowledge may have faded — not to judge, but to know where to resume. This is
+framed as a recalibration, not a test.
 
-The soft intake recalculates retention schedules (spaced repetition
-intervals will have decayed during the pause), adjusts the weekly plan to
-revisit material where needed, and may suggest a lighter first week back.
+The soft intake recalculates retention schedules (spaced repetition intervals
+will have decayed during the pause), adjusts the weekly plan to revisit material
+where needed, and may suggest a lighter first week back.
 
-At no point does the agent preach, express disappointment, or imply the
-learner should have returned sooner. The message is always: welcome back,
-let us figure out together where to pick up.
+At no point does the agent preach, express disappointment, or imply the learner
+should have returned sooner. The message is always: welcome back, let us figure
+out together where to pick up.
 
 ### 5.3 Meaningful progress, not gamification
 
@@ -442,104 +430,100 @@ leaderboards. Research on the overjustification effect (Lepper, Greene &
 Nisbett, 1973) shows that expected external rewards undermine intrinsic
 motivation (d = −0.40 for engagement-contingent rewards).
 
-Instead, the system communicates progress in terms of the learner's own
-goal. Not "you earned 450 points" but "you can now independently
-configure RBAC policies — that is one of the core CKA competencies."
-The learner's destination (defined in the curriculum bridge's to-state)
-is the reference point for every progress message.
+Instead, the system communicates progress in terms of the learner's own goal.
+Not "you earned 450 points" but "you can now independently configure RBAC
+policies — that is one of the core CKA competencies." The learner's destination
+(defined in the curriculum bridge's to-state) is the reference point for every
+progress message.
 
-Verbal feedback that is informational rather than controlling enhances
-intrinsic motivation (d = +0.33). The agent provides specific, genuine
-acknowledgment of growth: "Last week you needed hints for service
-configuration — this week you solved it independently. That is real
-progress."
+Verbal feedback that is informational rather than controlling enhances intrinsic
+motivation (d = +0.33). The agent provides specific, genuine acknowledgment of
+growth: "Last week you needed hints for service configuration — this week you
+solved it independently. That is real progress."
 
 ---
 
 ## 6. The intake
 
-Before the curriculum begins, the system conducts an intake process. The
-intake serves three purposes: validating that the learner's goal is
-appropriate, establishing the starting state, and building the initial
-learning plan.
+Before the curriculum begins, the system conducts an intake process. The intake
+serves three purposes: validating that the learner's goal is appropriate,
+establishing the starting state, and building the initial learning plan.
 
 ### 6.1 Goal validation (Action Mapping)
 
-The first step questions the goal itself. Not "what do you want to learn"
-but "what do you want to be able to do, and why?" If the answer suggests
-that learning an entire domain is unnecessary — perhaps a process change
-or a different tool would solve the actual problem — the system says so.
-This is Cathy Moore's Action Mapping principle: training is only the right
-solution when a knowledge or skill gap is the actual barrier.
+The first step questions the goal itself. Not "what do you want to learn" but
+"what do you want to be able to do, and why?" If the answer suggests that
+learning an entire domain is unnecessary — perhaps a process change or a
+different tool would solve the actual problem — the system says so. This is
+Cathy Moore's Action Mapping principle: training is only the right solution when
+a knowledge or skill gap is the actual barrier.
 
-This step requires honest conversation. The agent does not assume the
-learner has already made the right decision. It asks probing questions:
-"What triggered this learning goal? What would success look like in your
-daily work? Have you considered alternative approaches?" If training is
-indeed the answer, the conversation produces a clearer, more specific goal.
+This step requires honest conversation. The agent does not assume the learner
+has already made the right decision. It asks probing questions: "What triggered
+this learning goal? What would success look like in your daily work? Have you
+considered alternative approaches?" If training is indeed the answer, the
+conversation produces a clearer, more specific goal.
 
 ### 6.2 Profile and prior knowledge
 
 The agent reviews the learner's background from `learner.config →
-background` and validates it through conversation. Technologies and
-proficiency levels are confirmed or adjusted. The agent asks targeted
-questions to verify self-reported expertise — not to catch dishonesty,
-but because self-assessment is unreliable (Kruger & Dunning, 1999) and
-the entire bridge system depends on accurate from-state data.
+background`
+and validates it through conversation. Technologies and proficiency levels are
+confirmed or adjusted. The agent asks targeted questions to verify self-reported
+expertise — not to catch dishonesty, but because self-assessment is unreliable
+(Kruger & Dunning, 1999) and the entire bridge system depends on accurate
+from-state data.
 
 ### 6.3 Baseline measurement
 
 The agent conducts a lightweight assessment: 2–3 targeted questions per
-curriculum phase, designed to place the learner on the competence scale.
-These are not pass/fail — they map the learner's current knowledge
-landscape. A learner who already understands container fundamentals but
-has no networking knowledge gets a different starting plan than one who
-is starting from scratch.
+curriculum phase, designed to place the learner on the competence scale. These
+are not pass/fail — they map the learner's current knowledge landscape. A
+learner who already understands container fundamentals but has no networking
+knowledge gets a different starting plan than one who is starting from scratch.
 
-The baseline measurement populates the initial competence levels in the
-progress data and informs the first gap analysis.
+The baseline measurement populates the initial competence levels in the progress
+data and informs the first gap analysis.
 
 ### 6.4 Gap analysis and honest advice
 
-With the goal, profile, and baseline established, the agent calculates
-the gap: how far is the learner from their goal, given their starting
-point and the planned curriculum?
+With the goal, profile, and baseline established, the agent calculates the gap:
+how far is the learner from their goal, given their starting point and the
+planned curriculum?
 
-The agent identifies accelerators (strong prior knowledge that enables
-faster progress through certain domains) and risk factors (missing
-prerequisites, unrealistic timeline, domains with no bridge from existing
-knowledge).
+The agent identifies accelerators (strong prior knowledge that enables faster
+progress through certain domains) and risk factors (missing prerequisites,
+unrealistic timeline, domains with no bridge from existing knowledge).
 
 The agent then presents an honest assessment:
 
 - If the plan is feasible: confirm and begin.
 - If the gap is larger than the timeline allows: recommend extending the
   duration or narrowing the scope.
-- If fundamental prerequisites are missing: recommend addressing them
-  first, potentially through a different mini-curriculum.
+- If fundamental prerequisites are missing: recommend addressing them first,
+  potentially through a different mini-curriculum.
 
-The learner decides. The agent advises. Once the learner confirms the
-plan, the system generates the first week's content and the curriculum
-begins.
+The learner decides. The agent advises. Once the learner confirms the plan, the
+system generates the first week's content and the curriculum begins.
 
 ---
 
 ## 7. Foundational learning principles
 
-This section summarizes the scientific principles that underpin the
-system's design. Each principle links to a specific system behavior.
-For the full research with citations, effect sizes, and primary sources,
-see `docs/research/learning-science.md`.
+This section summarizes the scientific principles that underpin the system's
+design. Each principle links to a specific system behavior. For the full
+research with citations, effect sizes, and primary sources, see
+`docs/research/learning-science.md`.
 
 ### Working memory is the bottleneck
 
-Humans can process 3–4 new chunks simultaneously. Every session respects
-a configurable cognitive budget that limits the number of new concepts
-introduced. Related information is always presented together (spatial
-contiguity), never split across separate pages or sections.
+Humans can process 3–4 new chunks simultaneously. Every session respects a
+configurable cognitive budget that limits the number of new concepts introduced.
+Related information is always presented together (spatial contiguity), never
+split across separate pages or sections.
 
-→ System behavior: `system.config → content.cognitive_budget` limits
-concepts per session. Theory briefings integrate text and diagrams.
+→ System behavior: `system.config → content.cognitive_budget` limits concepts
+per session. Theory briefings integrate text and diagrams.
 
 ### Retrieval beats re-reading
 
@@ -554,12 +538,12 @@ open-ended assessment questions.
 
 ### Spacing prevents forgetting
 
-Distributing practice over time improves retention by up to 200% compared
-to massed practice. The SM-2 algorithm schedules reviews at expanding
-intervals calibrated to each concept's difficulty.
+Distributing practice over time improves retention by up to 200% compared to
+massed practice. The SM-2 algorithm schedules reviews at expanding intervals
+calibrated to each concept's difficulty.
 
-→ System behavior: `RetentionSchedule` entity with per-concept SM-2
-tracking. Daily retention questions drawn from earlier domains.
+→ System behavior: `RetentionSchedule` entity with per-concept SM-2 tracking.
+Daily retention questions drawn from earlier domains.
 
 ### Interleaving builds discrimination
 
@@ -573,51 +557,50 @@ Assessment questions combine concepts from the current and prior modules.
 ### Scaffolding must fade
 
 Support that helps novices becomes counterproductive for advanced learners
-(expertise reversal effect). The system adjusts scaffolding intensity
-based on the learner's current competence level, progressively removing
-structure as mastery grows.
+(expertise reversal effect). The system adjusts scaffolding intensity based on
+the learner's current competence level, progressively removing structure as
+mastery grows.
 
-→ System behavior: `curriculum.config → scaffolding_profile` defines
-support levels. Agent adapts worked examples, hints, and guidance.
+→ System behavior: `curriculum.config → scaffolding_profile` defines support
+levels. Agent adapts worked examples, hints, and guidance.
 
 ### Prior knowledge is the strongest predictor
 
-What the learner already knows determines how they learn new material.
-The bridge system formalizes prior knowledge activation by mapping every
-new concept to existing knowledge and selecting a teaching strategy based
-on the relationship between old and new.
+What the learner already knows determines how they learn new material. The
+bridge system formalizes prior knowledge activation by mapping every new concept
+to existing knowledge and selecting a teaching strategy based on the
+relationship between old and new.
 
 → System behavior: bridge mappings in curriculum.config. Five strategies
-(analogy, first_principles, contrast, scaffolded, accelerated) selected
-per gap analysis.
+(analogy, first_principles, contrast, scaffolded, accelerated) selected per gap
+analysis.
 
 ### Adults need autonomy, competence, and relevance
 
-Intrinsic motivation depends on feeling in control, experiencing
-mastery, and seeing immediate relevance. The system protects all three:
-configurable pacing, competence-referenced progress, and problem-first
-content that connects to real professional goals.
+Intrinsic motivation depends on feeling in control, experiencing mastery, and
+seeing immediate relevance. The system protects all three: configurable pacing,
+competence-referenced progress, and problem-first content that connects to real
+professional goals.
 
-→ System behavior: learner-controlled pacing, pause/resume without
-judgment, goal-referenced progress messages, scenario-based content.
+→ System behavior: learner-controlled pacing, pause/resume without judgment,
+goal-referenced progress messages, scenario-based content.
 
 ### Sleep consolidates learning
 
 Memory consolidation during sleep is essential for durable learning. The
 system's cycle of evening content generation → overnight sleep → morning
-consumption aligns with this biology. The system never encourages
-late-night study sessions or sleep sacrifice.
+consumption aligns with this biology. The system never encourages late-night
+study sessions or sleep sacrifice.
 
-→ System behavior: configurable generation time, rest day with no
-activities, pacing that discourages cramming.
+→ System behavior: configurable generation time, rest day with no activities,
+pacing that discourages cramming.
 
 ### One-on-one tutoring is the gold standard
 
-Bloom's 2-sigma finding shows that individual tutoring with mastery
-learning produces a 2 standard deviation improvement. The AI agent
-implements this through personalized content generation, immediate
-feedback, mastery-based progression, and adaptive pacing — the four
-factors that drive the effect.
+Bloom's 2-sigma finding shows that individual tutoring with mastery learning
+produces a 2 standard deviation improvement. The AI agent implements this
+through personalized content generation, immediate feedback, mastery-based
+progression, and adaptive pacing — the four factors that drive the effect.
 
 → System behavior: the entire system is designed around this principle.
 
@@ -625,51 +608,48 @@ factors that drive the effect.
 
 ## 8. Configuration reference
 
-The system is fully configured through three files. No domain-specific
-knowledge exists in code.
+The system is fully configured through three files. No domain-specific knowledge
+exists in code.
 
 **`curriculum.config.yaml`** defines what is learned: domains, phases,
-competence levels, bridge mappings, key concepts, prerequisites, and
-stretch modules. This file is created by the curriculum designer and
-shared across learners taking the same curriculum.
+competence levels, bridge mappings, key concepts, prerequisites, and stretch
+modules. This file is created by the curriculum designer and shared across
+learners taking the same curriculum.
 
-**`learner.config.yaml`** defines who is learning: background,
-technologies, schedule, rest day, generation timing, assessment deadlines,
-retention preferences, wellbeing state, and personal preferences for tone
-and depth. This file belongs to the individual learner.
+**`learner.config.yaml`** defines who is learning: background, technologies,
+schedule, rest day, generation timing, assessment deadlines, retention
+preferences, wellbeing state, and personal preferences for tone and depth. This
+file belongs to the individual learner.
 
-**`system.config.yaml`** defines how the system operates: AI provider and
-model, MCP transport, spaced repetition parameters, cognitive budget,
-content length limits, scaffolding profiles, interleaving settings,
-assessment configuration, and export options. This file is managed by the
-system administrator.
+**`system.config.yaml`** defines how the system operates: AI provider and model,
+MCP transport, spaced repetition parameters, cognitive budget, content length
+limits, scaffolding profiles, interleaving settings, assessment configuration,
+and export options. This file is managed by the system administrator.
 
-The full configuration schema with all fields, defaults, and validation
-rules is specified in `docs/adr/002-configuration-first.md`.
+The full configuration schema with all fields, defaults, and validation rules is
+specified in `docs/adr/002-configuration-first.md`.
 
 ---
 
 ## 9. Agent interface
 
-An AI agent operating within this system uses MCP tools to interact with
-the web application. The agent's responsibilities, in order of a typical
-weekly cycle:
+An AI agent operating within this system uses MCP tools to interact with the web
+application. The agent's responsibilities, in order of a typical weekly cycle:
 
-1. **Observe**: read the learner's current state — progress, recent
-   answers, pending questions, retention schedule, wellbeing status.
+1. **Observe**: read the learner's current state — progress, recent answers,
+   pending questions, retention schedule, wellbeing status.
 2. **Analyze**: evaluate answers, calculate gaps, determine strategy.
-3. **Generate**: create content — theory briefings with visuals,
-   provocative questions, practice exercises, assessments, retention
-   questions, feedback.
-4. **Write**: persist all generated content and evaluations to the
-   application through MCP tools.
-5. **Steer**: update competence levels, adjust retention schedules,
-   flag concerns, write retrospectives.
+3. **Generate**: create content — theory briefings with visuals, provocative
+   questions, practice exercises, assessments, retention questions, feedback.
+4. **Write**: persist all generated content and evaluations to the application
+   through MCP tools.
+5. **Steer**: update competence levels, adjust retention schedules, flag
+   concerns, write retrospectives.
 
 The agent never communicates with the learner outside the application. All
-content — theory, questions, feedback — is written to the application
-where the learner reads it. The agent's role is to populate the
-application with the right content at the right time.
+content — theory, questions, feedback — is written to the application where the
+learner reads it. The agent's role is to populate the application with the right
+content at the right time.
 
 The agent must respect the following constraints:
 
@@ -683,22 +663,21 @@ The agent must respect the following constraints:
 - Always use the Socratic method for conceptual questions.
 - Always connect progress to the learner's stated goal.
 
-The full agent behavioral specification — including tone, strategy
-selection, and error handling — is maintained in the agent's own
-instruction file (for Claude: `CLAUDE.md`; other agents may use their
-equivalent). That instruction file should reference this document for
-the system design rationale.
+The full agent behavioral specification — including tone, strategy selection,
+and error handling — is maintained in the agent's own instruction file (for
+Claude: `CLAUDE.md`; other agents may use their equivalent). That instruction
+file should reference this document for the system design rationale.
 
 ---
 
 ## References
 
-| Document | Location | Purpose |
-|---|---|---|
-| Design philosophy | `DESIGN.md` | Why the project exists |
-| Learning science research | `docs/research/learning-science.md` | Scientific evidence base |
-| Data model and API | `docs/adr/001-data-model-api.md` | Technical specification |
-| Configuration schema | `docs/adr/002-configuration-first.md` | Config structure and examples |
+| Document                    | Location                                  | Purpose                             |
+| --------------------------- | ----------------------------------------- | ----------------------------------- |
+| Design philosophy           | `DESIGN.md`                               | Why the project exists              |
+| Learning science research   | `docs/research/learning-science.md`       | Scientific evidence base            |
+| Data model and API          | `docs/adr/001-data-model-api.md`          | Technical specification             |
+| Configuration schema        | `docs/adr/002-configuration-first.md`     | Config structure and examples       |
 | Bridge principle and intake | `docs/adr/003-bridge-principle-intake.md` | Bridge architecture and intake flow |
-| Example curriculum | `config/examples/` | Working configuration files |
-| Agent instructions | `CLAUDE.md` (or equivalent) | Agent-specific behavioral rules |
+| Example curriculum          | `config/examples/`                        | Working configuration files         |
+| Agent instructions          | `CLAUDE.md` (or equivalent)               | Agent-specific behavioral rules     |

@@ -23,8 +23,8 @@ operational flow, see [docs/SYSTEM.md](./docs/SYSTEM.md).
 The platform consists of these core pieces:
 
 - a Fresh web app with dashboard, today view, and REST API routes
-- Deno KV repositories for progress, weeks, days, questions, answers,
-  feedback, and retention
+- Deno KV repositories for progress, weeks, days, questions, answers, feedback,
+  and retention
 - an MCP server that exposes the learning data and write operations to an AI
   coaching agent
 - configuration schemas and an example curriculum for Kubernetes and hybrid
@@ -94,7 +94,8 @@ deno task mcp
 
 Write three YAML files. No code changes needed.
 
-- `curriculum.config.yaml` — domains, phases, bridges between prior and new knowledge
+- `curriculum.config.yaml` — domains, phases, bridges between prior and new
+  knowledge
 - `learner.config.yaml` — your background, schedule, preferences
 - `system.config.yaml` — AI provider, timing, spaced repetition parameters
 
@@ -110,19 +111,19 @@ Technical decisions are documented as ADRs:
 - [ADR-002: Configuration-first design](./docs/adr/002-configuration-first.md)
 - [ADR-003: Bridge principle & intake](./docs/adr/003-bridge-principle-intake.md)
 
-For more specific and elaborate information about the operational design,
-weekly cycle, coaching behavior, retention model, and intake flow, see
+For more specific and elaborate information about the operational design, weekly
+cycle, coaching behavior, retention model, and intake flow, see
 [docs/SYSTEM.md](./docs/SYSTEM.md).
 
 ## Core concept: everything is a bridge
 
-Every step in the learning process is a transformation from a known state (`from`)
-to a desired state (`to`). This pattern is recursive — it applies at every level:
-curriculum, phase, domain, week, day.
+Every step in the learning process is a transformation from a known state
+(`from`) to a desired state (`to`). This pattern is recursive — it applies at
+every level: curriculum, phase, domain, week, day.
 
-The `from` can be empty. Not everyone has prior knowledge. The system detects this
-and adapts: where an experienced professional learns through analogy, a beginner
-learns through first principles.
+The `from` can be empty. Not everyone has prior knowledge. The system detects
+this and adapts: where an experienced professional learns through analogy, a
+beginner learns through first principles.
 
 Before the weekly cycle begins, the system runs an intake to validate the
 learner's goal, estimate the gap, and advise whether the plan is realistic.

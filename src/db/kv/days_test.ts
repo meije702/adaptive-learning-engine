@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "@std/testing/bdd";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { assertEquals, assertNotEquals } from "jsr:@std/assert";
 import { createTestKv } from "@/test_helpers.ts";
 import type { Repositories } from "@/db/repositories.ts";
@@ -153,7 +153,9 @@ describe("KvDayRepository", () => {
         body: "Content for today",
       });
 
-      const result = await repos.days.getToday([today], { [String(today)]: "theory" });
+      const result = await repos.days.getToday([today], {
+        [String(today)]: "theory",
+      });
 
       // If today is 0 (Sunday) and the dayOfWeek type is 1-6, this might be null
       // but we still test the logic path

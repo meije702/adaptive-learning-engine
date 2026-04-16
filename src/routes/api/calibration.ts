@@ -41,18 +41,28 @@ export const handler = define.handlers({
     }
 
     const feedback = await repos.feedback.getByAnswer(answer.id);
-    const actualScore = feedback?.score ?? "incorrect";
+    if (!feedback) {
+      return badRequest(
+        "Feedback has not been created yet for this answer. Calibration requires an actual score to compare against.",
+        "/api/calibration",
+      );
+    }
+    const actualScore = feedback.score;
 
     // Compute delta
     const scoreOrder = { incorrect: 0, partial: 1, correct: 2 };
-    const predicted = scoreOrder[body.predictedScore as keyof typeof scoreOrder];
+    const predicted =
+      scoreOrder[body.predictedScore as keyof typeof scoreOrder];
     const actual = scoreOrder[actualScore];
     const delta = predicted > actual ? -1 : predicted < actual ? 1 : 0;
 
     const entry = await repos.calibration.create({
       questionId: body.questionId,
       domainId: question.domainId,
-      predictedScore: body.predictedScore as "correct" | "partial" | "incorrect",
+      predictedScore: body.predictedScore as
+        | "correct"
+        | "partial"
+        | "incorrect",
       actualScore,
       delta: delta as -1 | 0 | 1,
     });

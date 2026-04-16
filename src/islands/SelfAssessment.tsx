@@ -49,7 +49,9 @@ export default function SelfAssessment({ questionId }: SelfAssessmentProps) {
             key={score}
             onClick={() => handlePredict(score)}
             disabled={submitting}
-            style={`padding: 0.375rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem; cursor: pointer; background: white; ${submitting ? "opacity: 0.5;" : ""}`}
+            style={`padding: 0.375rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem; cursor: pointer; background: white; ${
+              submitting ? "opacity: 0.5;" : ""
+            }`}
           >
             {score === "correct"
               ? "Goed"

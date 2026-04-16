@@ -15,7 +15,10 @@ export const handler = define.handlers({
     const body = await parseJsonBody<Omit<CreateDayContent, "weekNumber">>(
       ctx.req,
     );
-    if (!body || !body.dayOfWeek || !body.type || !body.domainId || !body.title || !body.body) {
+    if (
+      !body || !body.dayOfWeek || !body.type || !body.domainId || !body.title ||
+      !body.body
+    ) {
       return badRequest(
         "Body must include dayOfWeek, type, domainId, title, and body",
         `/api/weeks/${weekNumber}/days`,

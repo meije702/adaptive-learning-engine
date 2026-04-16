@@ -24,7 +24,12 @@ const validMinimal = {
     },
   },
   levels: [
-    { id: 0, label: "Unknown", description: "Not started", assessment_type: null },
+    {
+      id: 0,
+      label: "Unknown",
+      description: "Not started",
+      assessment_type: null,
+    },
   ],
   phases: [
     {

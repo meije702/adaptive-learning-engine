@@ -34,8 +34,8 @@ export default define.page(async function RetentionPage(ctx) {
         Retentie
       </h1>
       <p style="color: #6b7280; margin-bottom: 1.5rem;">
-        Spaced repetition houdt kennis actief. Beantwoord de vragen hieronder
-        om je geheugen te versterken.
+        Spaced repetition houdt kennis actief. Beantwoord de vragen hieronder om
+        je geheugen te versterken.
       </p>
 
       {/* Pending retention questions */}
@@ -59,7 +59,10 @@ export default define.page(async function RetentionPage(ctx) {
                 <AnswerForm
                   questionId={q.id}
                   questionType={q.type}
-                  options={q.options?.map((o) => ({ key: o.key, text: o.text }))}
+                  options={q.options?.map((o) => ({
+                    key: o.key,
+                    text: o.text,
+                  }))}
                 />
               </div>
             ))}
@@ -115,13 +118,13 @@ export default define.page(async function RetentionPage(ctx) {
               return (
                 <div
                   key={r.domainId}
-                  style={`display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.8125rem; ${isDue ? "background: #fffbeb;" : "background: #f9fafb;"}`}
+                  style={`display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.8125rem; ${
+                    isDue ? "background: #fffbeb;" : "background: #f9fafb;"
+                  }`}
                 >
                   <span>{domainMap.get(r.domainId) ?? r.domainId}</span>
                   <span style="color: #6b7280;">
-                    {isDue
-                      ? "Nu"
-                      : `over ${r.interval}d`} — streak {r.streak}
+                    {isDue ? "Nu" : `over ${r.interval}d`} — streak {r.streak}
                   </span>
                 </div>
               );

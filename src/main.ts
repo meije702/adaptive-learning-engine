@@ -25,8 +25,15 @@ app.use(async (ctx) => {
     const expected = Deno.env.get("ALE_AUTH_TOKEN");
     if (expected && token !== expected) {
       return new Response(
-        JSON.stringify({ type: "https://learning.app/errors/unauthorized", title: "Unauthorized", status: 401 }),
-        { status: 401, headers: { "Content-Type": "application/problem+json" } },
+        JSON.stringify({
+          type: "https://learning.app/errors/unauthorized",
+          title: "Unauthorized",
+          status: 401,
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/problem+json" },
+        },
       );
     }
   }

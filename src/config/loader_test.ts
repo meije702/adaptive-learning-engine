@@ -42,8 +42,14 @@ describe("loadConfig", () => {
     it("should load curriculum bridge", async () => {
       const config = await loadConfig(EXAMPLE_DIR);
 
-      assertEquals(config.curriculum.bridge.from?.label, "AWS serverless specialist");
-      assertEquals(config.curriculum.bridge.to.label, "K8s & hybrid cloud engineer");
+      assertEquals(
+        config.curriculum.bridge.from?.label,
+        "AWS serverless specialist",
+      );
+      assertEquals(
+        config.curriculum.bridge.to.label,
+        "K8s & hybrid cloud engineer",
+      );
     });
 
     it("should load domain bridge structure", async () => {
@@ -59,7 +65,10 @@ describe("loadConfig", () => {
     it("should load phase bridge structure", async () => {
       const config = await loadConfig(EXAMPLE_DIR);
 
-      assertEquals(config.curriculum.phases[0].bridge.from?.proficiency, "expert");
+      assertEquals(
+        config.curriculum.phases[0].bridge.from?.proficiency,
+        "expert",
+      );
     });
 
     it("should load learner config", async () => {
@@ -80,10 +89,14 @@ describe("loadConfig", () => {
   it("should parse domain prerequisites as string arrays", async () => {
     const config = await loadConfig(EXAMPLE_DIR);
 
-    const arch = config.curriculum.domains.find((d) => d.id === "k8s-architecture");
+    const arch = config.curriculum.domains.find((d) =>
+      d.id === "k8s-architecture"
+    );
     assertEquals(arch?.prerequisites, ["container-fundamentals"]);
 
-    const first = config.curriculum.domains.find((d) => d.id === "container-fundamentals");
+    const first = config.curriculum.domains.find((d) =>
+      d.id === "container-fundamentals"
+    );
     assertEquals(first?.prerequisites, []);
   });
 

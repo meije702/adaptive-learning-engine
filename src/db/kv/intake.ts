@@ -38,7 +38,10 @@ export class KvIntakeRepository implements IntakeRepository {
     // everything before it. The \uffff suffix ensures we skip all entries
     // at the since timestamp (regardless of message id).
     const selector = since
-      ? { prefix: ["intake_messages"] as Deno.KvKey, start: ["intake_messages", since, "\uffff"] as Deno.KvKey }
+      ? {
+        prefix: ["intake_messages"] as Deno.KvKey,
+        start: ["intake_messages", since, "\uffff"] as Deno.KvKey,
+      }
       : { prefix: ["intake_messages"] as Deno.KvKey };
 
     const iter = this.kv.list<IntakeMessage>(selector);

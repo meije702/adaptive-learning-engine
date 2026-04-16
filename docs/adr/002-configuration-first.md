@@ -1,8 +1,6 @@
 # ADR-002: Configuration-First Design
 
-**Status:** Proposed
-**Date:** 2026-04-03
-**Author:** Sander + Claude
+**Status:** Proposed **Date:** 2026-04-03 **Author:** Sander + Claude
 **Supersedes:** Hardcoded values in ADR-001
 
 ## Context
@@ -21,17 +19,17 @@ configuratiebestanden aan te passen.
 
 Drie configuratiebestanden:
 
-| Bestand | Beschrijving | Wie beheert het |
-|---------|-------------|-----------------|
-| `curriculum.config.yaml` | Het leertraject: domeinen, fases, volgorde, bruggen | De ontwerper van het traject |
-| `learner.config.yaml` | Het profiel: achtergrond, planning, voorkeuren | De leerling |
-| `system.config.yaml` | Technische instellingen: AI, scheduling, spaced repetition | De beheerder |
+| Bestand                  | Beschrijving                                               | Wie beheert het              |
+| ------------------------ | ---------------------------------------------------------- | ---------------------------- |
+| `curriculum.config.yaml` | Het leertraject: domeinen, fases, volgorde, bruggen        | De ontwerper van het traject |
+| `learner.config.yaml`    | Het profiel: achtergrond, planning, voorkeuren             | De leerling                  |
+| `system.config.yaml`     | Technische instellingen: AI, scheduling, spaced repetition | De beheerder                 |
 
 ---
 
 ## 1. curriculum.config.yaml
 
-Definieert *wat* er geleerd wordt.
+Definieert _wat_ er geleerd wordt.
 
 ```yaml
 # ──────────────────────────────────────────────
@@ -43,9 +41,9 @@ meta:
   name: "Kubernetes & Hybrid Cloud"
   version: "1.0.0"
   description: "Van serverless specialist naar K8s & hybrid cloud engineer"
-  target_certification: "CKA"          # optioneel
+  target_certification: "CKA" # optioneel
   estimated_weeks: 16
-  language: "nl"                        # primaire taal van gegenereerde content
+  language: "nl" # primaire taal van gegenereerde content
 
 # ── Competentieniveaus ──────────────────────
 # Aanpasbaar per curriculum. Min 3, max 7.
@@ -116,7 +114,7 @@ domains:
       - "OCI image spec"
       - "Layers en caching"
       - "Container runtime (containerd, CRI-O)"
-    resources: []                       # optionele links naar extern materiaal
+    resources: [] # optionele links naar extern materiaal
 
   - id: "k8s-architecture"
     name: "K8s architecture"
@@ -139,7 +137,14 @@ domains:
     name: "Workloads & scheduling"
     phase: 1
     week: 3
-    tags: ["pods", "deployments", "replicasets", "statefulsets", "daemonsets", "jobs"]
+    tags: [
+      "pods",
+      "deployments",
+      "replicasets",
+      "statefulsets",
+      "daemonsets",
+      "jobs",
+    ]
     prerequisites: ["k8s-architecture"]
     bridge:
       from: "Auto Scaling Groups"
@@ -190,7 +195,13 @@ domains:
     name: "Security & RBAC"
     phase: 2
     week: 6
-    tags: ["rbac", "serviceaccounts", "networkpolicies", "podsecurity", "secrets"]
+    tags: [
+      "rbac",
+      "serviceaccounts",
+      "networkpolicies",
+      "podsecurity",
+      "secrets",
+    ]
     prerequisites: ["networking-basis"]
     bridge:
       from: "IAM policies & roles"
@@ -376,7 +387,7 @@ domains:
 # ── Stretch modules ─────────────────────────
 # Optionele modules die elke N weken worden ingevoegd.
 stretch:
-  frequency: 4                          # elke N weken
+  frequency: 4 # elke N weken
   domains:
     - id: "service-mesh-deep-dive"
       name: "Service mesh deep dive"
@@ -396,7 +407,7 @@ stretch:
 
 ## 2. learner.config.yaml
 
-Definieert *wie* er leert en *hoe* het schema eruitziet.
+Definieert _wie_ er leert en _hoe_ het schema eruitziet.
 
 ```yaml
 # ──────────────────────────────────────────────
@@ -405,7 +416,7 @@ Definieert *wie* er leert en *hoe* het schema eruitziet.
 
 profile:
   name: "Sander"
-  language: "nl"                        # UI en interactie taal
+  language: "nl" # UI en interactie taal
   timezone: "Europe/Amsterdam"
 
 # ── Bestaande kennis ────────────────────────
@@ -428,8 +439,8 @@ background:
 
 # ── Planning ────────────────────────────────
 schedule:
-  rest_day: 0                           # 0=zondag, 6=zaterdag
-  active_days: [1, 2, 3, 4, 5, 6]      # ma t/m za
+  rest_day: 0 # 0=zondag, 6=zaterdag
+  active_days: [1, 2, 3, 4, 5, 6] # ma t/m za
 
   # Wat gebeurt er op elke actieve dag?
   # day_of_week: type uit day_types
@@ -445,7 +456,7 @@ schedule:
   generation_time: "22:00"
 
   # Assessment inleverdeadline
-  assessment_deadline_day: 6            # zaterdag
+  assessment_deadline_day: 6 # zaterdag
   assessment_deadline_time: "20:00"
 
   # Feedback beschikbaar na assessment
@@ -455,25 +466,25 @@ schedule:
   # Retentievragen
   retention:
     enabled: true
-    days: [1, 2, 3, 4, 5, 6]           # elke actieve dag
+    days: [1, 2, 3, 4, 5, 6] # elke actieve dag
     questions_per_day:
       min: 1
       max: 3
 
 # ── Voorkeuren ──────────────────────────────
 preferences:
-  content_length: "concise"             # "concise" | "standard" | "detailed"
-  tone: "collegial"                     # "formal" | "collegial" | "casual"
-  show_bridges: true                    # toon AWS ↔ K8s analogieën
-  hints_enabled: true                   # progressieve hints bij oefeningen
-  time_tracking: false                  # tijdregistratie bij antwoorden
+  content_length: "concise" # "concise" | "standard" | "detailed"
+  tone: "collegial" # "formal" | "collegial" | "casual"
+  show_bridges: true # toon AWS ↔ K8s analogieën
+  hints_enabled: true # progressieve hints bij oefeningen
+  time_tracking: false # tijdregistratie bij antwoorden
 ```
 
 ---
 
 ## 3. system.config.yaml
 
-Definieert *hoe* het systeem technisch werkt.
+Definieert _hoe_ het systeem technisch werkt.
 
 ```yaml
 # ──────────────────────────────────────────────
@@ -482,18 +493,18 @@ Definieert *hoe* het systeem technisch werkt.
 
 server:
   port: 8000
-  base_url: "https://learn.deno.dev"    # production URL
+  base_url: "https://learn.deno.dev" # production URL
 
 auth:
-  type: "bearer"                        # "bearer" | "none" (voor lokaal dev)
-  # Token wordt via environment variable gezet, niet in config
+  type: "bearer" # "bearer" | "none" (voor lokaal dev)
+# Token wordt via environment variable gezet, niet in config
 
 storage:
-  type: "deno-kv"                       # "deno-kv" | "sqlite" | "postgres"
+  type: "deno-kv" # "deno-kv" | "sqlite" | "postgres"
 
 # ── AI Agent ────────────────────────────────
 ai:
-  provider: "anthropic"                 # "anthropic" | "openai" | "local"
+  provider: "anthropic" # "anthropic" | "openai" | "local"
   model: "claude-sonnet-4-20250514"
   system_prompt_template: |
     Je bent een {curriculum.meta.name} trainer voor een ervaren engineer.
@@ -507,15 +518,15 @@ ai:
 
 # ── MCP Server ──────────────────────────────
 mcp:
-  transport: "sse"                      # "sse" | "stdio"
-  path: "/mcp"                          # endpoint path
+  transport: "sse" # "sse" | "stdio"
+  path: "/mcp" # endpoint path
 
 # ── Spaced Repetition ──────────────────────
 retention:
   initial_interval_days: 1
   multiplier_correct: 2.5
   multiplier_partial: 1.2
-  multiplier_incorrect: 0.0             # reset naar initial
+  multiplier_incorrect: 0.0 # reset naar initial
   max_interval_days: 60
 
 # ── Content Generation ──────────────────────
@@ -531,14 +542,14 @@ content:
   # Assessment configuratie
   assessment:
     question_types: ["scenario", "open", "multiple_choice", "troubleshoot"]
-    options_count: 4                    # bij multiple choice
-    passing_score: "partial"            # minimum om als voldoende te tellen
+    options_count: 4 # bij multiple choice
+    passing_score: "partial" # minimum om als voldoende te tellen
 
 # ── Logging & Export ────────────────────────
 export:
   enabled: true
-  format: "json"                        # "json" | "markdown"
-  schedule: "weekly"                    # "daily" | "weekly" | "manual"
+  format: "json" # "json" | "markdown"
+  schedule: "weekly" # "daily" | "weekly" | "manual"
 ```
 
 ---
@@ -547,7 +558,8 @@ export:
 
 - **Geen enkele domein-specifieke waarde staat in code** — alles komt uit config
 - **Nieuwe curricula** worden gemaakt door alleen YAML-bestanden te schrijven
-- **Persoonlijke voorkeuren** (rustdag, taal, toon, tijden) zijn volledig aanpasbaar
+- **Persoonlijke voorkeuren** (rustdag, taal, toon, tijden) zijn volledig
+  aanpasbaar
 - **AI-provider is verwisselbaar** via `system.config.yaml`
 - **Spaced repetition parameters** zijn tunebaar zonder code-wijziging
 - **Open source ready** — fork, pas config aan, deploy, klaar

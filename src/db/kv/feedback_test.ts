@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "@std/testing/bdd";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { assertEquals, assertNotEquals } from "jsr:@std/assert";
 import { createTestKv } from "@/test_helpers.ts";
 import type { Repositories } from "@/db/repositories.ts";
@@ -67,7 +67,9 @@ describe("KvFeedbackRepository", () => {
       assertEquals(feedback.explanation, "Solid systematic approach");
       assertEquals(feedback.suggestedLevel, 3);
       assertEquals(feedback.levelApplied, true);
-      assertEquals(feedback.improvements, ["Consider also checking resource limits"]);
+      assertEquals(feedback.improvements, [
+        "Consider also checking resource limits",
+      ]);
       assertNotEquals(feedback.createdAt, undefined);
     });
   });
@@ -142,15 +144,26 @@ describe("KvFeedbackRepository", () => {
         applyLevel: false,
         improvements: ["Expand on monitoring"],
         feedUp: "You are working toward CKA-level troubleshooting skills.",
-        feedBack: "Your log analysis was thorough but you missed the resource check.",
-        feedForward: "Next time, include kubectl top output in your investigation.",
+        feedBack:
+          "Your log analysis was thorough but you missed the resource check.",
+        feedForward:
+          "Next time, include kubectl top output in your investigation.",
       });
 
       const fetched = await repos.feedback.get(feedback.id);
       assertNotEquals(fetched, null);
-      assertEquals(fetched!.feedUp, "You are working toward CKA-level troubleshooting skills.");
-      assertEquals(fetched!.feedBack, "Your log analysis was thorough but you missed the resource check.");
-      assertEquals(fetched!.feedForward, "Next time, include kubectl top output in your investigation.");
+      assertEquals(
+        fetched!.feedUp,
+        "You are working toward CKA-level troubleshooting skills.",
+      );
+      assertEquals(
+        fetched!.feedBack,
+        "Your log analysis was thorough but you missed the resource check.",
+      );
+      assertEquals(
+        fetched!.feedForward,
+        "Next time, include kubectl top output in your investigation.",
+      );
     });
 
     it("should leave structured fields undefined when not provided", async () => {

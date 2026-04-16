@@ -215,7 +215,10 @@ describe("API Route Handlers — Layer 2", () => {
         maxLevel: 3,
         deadline: new Date(Date.now() + 86400000).toISOString(),
       }]);
-      const answer = await repos.answers.create({ questionId: question.id, body: "ans" });
+      const answer = await repos.answers.create({
+        questionId: question.id,
+        body: "ans",
+      });
       await repos.feedback.create({
         answerId: answer.id,
         questionId: question.id,
@@ -358,20 +361,31 @@ describe("API Route Handlers — Layer 2", () => {
   // ── POST /api/calibration — negative paths ──
 
   describe("POST /api/calibration — answer exists but no feedback", () => {
-    it("returns delta based on fallback actualScore='incorrect' when feedback missing", async () => {
+    it("rejects calibration when feedback has not been created yet", async () => {
       const { handler } = await import("@/routes/api/calibration.ts");
 
       const day = await repos.days.create({
-        weekNumber: 1, dayOfWeek: 1, type: "theory",
-        domainId: "domain-a", title: "D", body: "B",
+        weekNumber: 1,
+        dayOfWeek: 1,
+        type: "theory",
+        domainId: "domain-a",
+        title: "D",
+        body: "B",
       });
       const [question] = await repos.questions.create([{
-        dayContentId: day.id, domainId: "domain-a", sequence: 1,
-        type: "open", body: "Q?", maxLevel: 3,
+        dayContentId: day.id,
+        domainId: "domain-a",
+        sequence: 1,
+        type: "open",
+        body: "Q?",
+        maxLevel: 3,
         deadline: new Date(Date.now() + 86400000).toISOString(),
       }]);
       // Submit answer but create NO feedback
-      await repos.answers.create({ questionId: question.id, body: "my answer" });
+      await repos.answers.create({
+        questionId: question.id,
+        body: "my answer",
+      });
 
       const ctx = mockCtx(postJson("/api/calibration", {
         questionId: question.id,
@@ -379,28 +393,32 @@ describe("API Route Handlers — Layer 2", () => {
       }));
       const response = await handler.POST!(ctx);
 
-      // Should succeed — actualScore falls back to "incorrect"
-      assertEquals(response.status, 201);
-      const data = await response.json();
-      // predicted=correct, actual=incorrect -> overestimate -> delta = -1
-      assertEquals(data.delta, -1);
-      assertEquals(data.actualScore, "incorrect");
+      // Must reject — calibration requires an actual score to compare against
+      assertEquals(response.status, 400);
     });
   });
 
   // ── POST /api/evaluate — mismatched dayContentId ──
 
   describe("POST /api/evaluate — mismatched dayContentId", () => {
-    it("still evaluates based on checkpoint regardless of dayContentId", async () => {
+    it("rejects evaluation when dayContentId does not match the question's day", async () => {
       const { handler } = await import("@/routes/api/evaluate.ts");
 
       const day = await repos.days.create({
-        weekNumber: 1, dayOfWeek: 1, type: "theory",
-        domainId: "domain-a", title: "D", body: "B",
+        weekNumber: 1,
+        dayOfWeek: 1,
+        type: "theory",
+        domainId: "domain-a",
+        title: "D",
+        body: "B",
       });
-      const [question] = await repos.questions.create([{
-        dayContentId: day.id, domainId: "domain-a", sequence: 1,
-        type: "multiple_choice", body: "Pick one", maxLevel: 3,
+      const [_question] = await repos.questions.create([{
+        dayContentId: day.id,
+        domainId: "domain-a",
+        sequence: 1,
+        type: "multiple_choice",
+        body: "Pick one",
+        maxLevel: 3,
         deadline: new Date(Date.now() + 86400000).toISOString(),
         options: [
           { key: "A", text: "Correct", isOptimal: true },
@@ -417,11 +435,63 @@ describe("API Route Handlers — Layer 2", () => {
       }));
 
       const response = await handler.POST!(ctx);
-      const data = await response.json();
 
-      // Checkpoint-based lookup finds the question regardless
-      assertEquals(response.status, 200);
-      assertEquals(data.correct, true);
+      // Must reject — prevents stale clients from creating answers on wrong days
+      assertEquals(response.status, 400);
+    });
+  });
+
+  // ── POST /api/answers/:answerId/feedback — progress update ──
+
+  describe("POST /api/answers/:answerId/feedback", () => {
+    it("updates progress on the correct domainId when applyLevel is true", async () => {
+      const { handler } = await import(
+        "@/routes/api/answers/[answerId]/feedback.ts"
+      );
+
+      const day = await repos.days.create({
+        weekNumber: 1,
+        dayOfWeek: 1,
+        type: "assessment",
+        domainId: "domain-a",
+        title: "D",
+        body: "B",
+      });
+      const [question] = await repos.questions.create([{
+        dayContentId: day.id,
+        domainId: "domain-a",
+        sequence: 1,
+        type: "open",
+        body: "Q?",
+        maxLevel: 4,
+        deadline: new Date(Date.now() + 86400000).toISOString(),
+      }]);
+      const answer = await repos.answers.create({
+        questionId: question.id,
+        body: "ans",
+      });
+
+      const ctx = mockCtx(
+        postJson(`/api/answers/${answer.id}/feedback`, {
+          questionId: question.id,
+          score: "correct",
+          explanation: "Good",
+          suggestedLevel: 4,
+          applyLevel: true,
+          improvements: [],
+        }),
+        { params: { answerId: answer.id } },
+      );
+      const response = await handler.POST!(ctx);
+      assertEquals(response.status, 201);
+
+      // Verify progress updated on domain-a, NOT on the questionId
+      const progress = await repos.progress.get("domain-a");
+      assertEquals(progress!.level, 4);
+
+      // Verify no garbage progress entry was created under the questionId
+      const garbage = await repos.progress.get(question.id);
+      assertEquals(garbage, null);
     });
   });
 
@@ -429,22 +499,39 @@ describe("API Route Handlers — Layer 2", () => {
 
   describe("GET /api/answers/:answerId/feedback", () => {
     it("returns feedback when it exists", async () => {
-      const { handler } = await import("@/routes/api/answers/[answerId]/feedback.ts");
+      const { handler } = await import(
+        "@/routes/api/answers/[answerId]/feedback.ts"
+      );
 
       const day = await repos.days.create({
-        weekNumber: 1, dayOfWeek: 1, type: "theory",
-        domainId: "domain-a", title: "D", body: "B",
+        weekNumber: 1,
+        dayOfWeek: 1,
+        type: "theory",
+        domainId: "domain-a",
+        title: "D",
+        body: "B",
       });
       const [question] = await repos.questions.create([{
-        dayContentId: day.id, domainId: "domain-a", sequence: 1,
-        type: "open", body: "Q?", maxLevel: 3,
+        dayContentId: day.id,
+        domainId: "domain-a",
+        sequence: 1,
+        type: "open",
+        body: "Q?",
+        maxLevel: 3,
         deadline: new Date(Date.now() + 86400000).toISOString(),
       }]);
-      const answer = await repos.answers.create({ questionId: question.id, body: "ans" });
+      const answer = await repos.answers.create({
+        questionId: question.id,
+        body: "ans",
+      });
       await repos.feedback.create({
-        answerId: answer.id, questionId: question.id,
-        score: "correct", explanation: "Well done",
-        suggestedLevel: 3, applyLevel: false, improvements: [],
+        answerId: answer.id,
+        questionId: question.id,
+        score: "correct",
+        explanation: "Well done",
+        suggestedLevel: 3,
+        applyLevel: false,
+        improvements: [],
       });
 
       const ctx = mockCtx(getReq(`/api/answers/${answer.id}/feedback`), {
@@ -459,7 +546,9 @@ describe("API Route Handlers — Layer 2", () => {
     });
 
     it("returns 404 when no feedback exists", async () => {
-      const { handler } = await import("@/routes/api/answers/[answerId]/feedback.ts");
+      const { handler } = await import(
+        "@/routes/api/answers/[answerId]/feedback.ts"
+      );
 
       const ctx = mockCtx(getReq("/api/answers/nonexistent/feedback"), {
         params: { answerId: "nonexistent" },

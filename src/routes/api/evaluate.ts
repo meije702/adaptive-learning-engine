@@ -47,6 +47,14 @@ export const handler = define.handlers({
       });
     }
 
+    // Validate that the question belongs to the claimed day content
+    if (dayContentId && question.dayContentId !== dayContentId) {
+      return badRequest(
+        `Question checkpoint "${evaluatorKey}" belongs to day ${question.dayContentId}, not ${dayContentId}`,
+        "/api/evaluate",
+      );
+    }
+
     // Store the answer
     const answer = await repos.answers.create({
       questionId: question.id,
@@ -71,7 +79,9 @@ export const handler = define.handlers({
         explanation: correct
           ? "Correct!"
           : `Het juiste antwoord was: ${optimal?.text ?? "onbekend"}`,
-        suggestedLevel: correct ? question.maxLevel : Math.max(0, question.maxLevel - 1),
+        suggestedLevel: correct
+          ? question.maxLevel
+          : Math.max(0, question.maxLevel - 1),
         applyLevel: false,
         improvements: [],
       });

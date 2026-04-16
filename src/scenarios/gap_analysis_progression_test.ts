@@ -1,6 +1,10 @@
 import { assertEquals } from "jsr:@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
-import { buildProgress, createTestConfig, createTestKv } from "@/test_helpers.ts";
+import {
+  buildProgress,
+  createTestConfig,
+  createTestKv,
+} from "@/test_helpers.ts";
 import { computeGapAnalysis } from "@/analysis/gap.ts";
 import type { Repositories } from "@/db/repositories.ts";
 

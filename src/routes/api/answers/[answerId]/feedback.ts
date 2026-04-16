@@ -35,11 +35,14 @@ export const handler = define.handlers({
 
     // Side effect: update progress if applyLevel is true
     if (body.applyLevel) {
-      await ctx.state.repos.progress.put(body.questionId, {
-        level: body.suggestedLevel as 0 | 1 | 2 | 3 | 4 | 5,
-        source: "assessment",
-        notes: body.explanation,
-      });
+      const question = await ctx.state.repos.questions.get(body.questionId);
+      if (question) {
+        await ctx.state.repos.progress.put(question.domainId, {
+          level: body.suggestedLevel as 0 | 1 | 2 | 3 | 4 | 5,
+          source: "assessment",
+          notes: body.explanation,
+        });
+      }
     }
 
     return jsonResponse(feedback, 201);

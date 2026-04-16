@@ -151,7 +151,14 @@ domains:
     name: "Workloads & scheduling"
     phase: 1
     week: 3
-    tags: ["pods", "deployments", "replicasets", "statefulsets", "daemonsets", "jobs"]
+    tags: [
+      "pods",
+      "deployments",
+      "replicasets",
+      "statefulsets",
+      "daemonsets",
+      "jobs",
+    ]
     prerequisites: ["k8s-architecture"]
     bridge:
       from:
@@ -217,7 +224,13 @@ domains:
     name: "Security & RBAC"
     phase: 2
     week: 6
-    tags: ["rbac", "serviceaccounts", "networkpolicies", "podsecurity", "secrets"]
+    tags: [
+      "rbac",
+      "serviceaccounts",
+      "networkpolicies",
+      "podsecurity",
+      "secrets",
+    ]
     prerequisites: ["networking-basis"]
     bridge:
       from:
@@ -244,7 +257,11 @@ domains:
     bridge:
       from:
         label: "SSM Parameter Store + CDK Constructs"
-        concepts: ["config separation", "reusable abstractions", "environment overrides"]
+        concepts: [
+          "config separation",
+          "reusable abstractions",
+          "environment overrides",
+        ]
         proficiency: "expert"
       to:
         label: "ConfigMaps + Helm Charts"
@@ -336,7 +353,12 @@ domains:
         proficiency: "advanced"
       to:
         label: "Self-managed cluster lifecycle"
-        concepts: ["kubeadm upgrade", "etcd backup", "node drain", "certificates"]
+        concepts: [
+          "kubeadm upgrade",
+          "etcd backup",
+          "node drain",
+          "certificates",
+        ]
         proficiency: "intermediate"
     key_concepts:
       - "Cluster upgrade strategie"
@@ -380,7 +402,11 @@ domains:
         proficiency: "intermediate"
       to:
         label: "AKS en GKE"
-        concepts: ["AKS managed identity", "GKE Autopilot", "cross-cloud patterns"]
+        concepts: [
+          "AKS managed identity",
+          "GKE Autopilot",
+          "cross-cloud patterns",
+        ]
         proficiency: "intermediate"
     key_concepts:
       - "EKS vs AKS vs GKE vergelijking"
@@ -398,11 +424,19 @@ domains:
     bridge:
       from:
         label: "Multi-account AWS strategie"
-        concepts: ["AWS Organizations", "cross-account roles", "shared services"]
+        concepts: [
+          "AWS Organizations",
+          "cross-account roles",
+          "shared services",
+        ]
         proficiency: "advanced"
       to:
         label: "Multi-cluster K8s"
-        concepts: ["cluster federation", "service mesh", "cross-cluster networking"]
+        concepts: [
+          "cluster federation",
+          "service mesh",
+          "cross-cluster networking",
+        ]
         proficiency: "intermediate"
     key_concepts:
       - "Multi-cluster patterns"

@@ -219,7 +219,10 @@ describe("computeGapAnalysis", () => {
 
     it("returns total domain count when no progress", () => {
       const result = computeGapAnalysis([], config.curriculum);
-      assertEquals(result.estimatedRemainingWeeks, config.curriculum.domains.length);
+      assertEquals(
+        result.estimatedRemainingWeeks,
+        config.curriculum.domains.length,
+      );
     });
   });
 });

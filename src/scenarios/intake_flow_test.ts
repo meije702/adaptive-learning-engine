@@ -32,7 +32,8 @@ describe("Scenario: Full intake journey", () => {
     repos = t.repos;
 
     server = await createMcpServer(repos, config);
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const [clientTransport, serverTransport] = InMemoryTransport
+      .createLinkedPair();
     await server.connect(serverTransport);
     client = new Client({ name: "test-client", version: "1.0.0" });
     await client.connect(clientTransport);
@@ -46,7 +47,10 @@ describe("Scenario: Full intake journey", () => {
 
   it("completes intake end-to-end: start -> messages -> complete", async () => {
     // Step 1: Start intake — creates session at goal_validation
-    const startResult = await client.callTool({ name: "start_intake", arguments: {} });
+    const startResult = await client.callTool({
+      name: "start_intake",
+      arguments: {},
+    });
     const startData = parse(startResult);
     assertExists(startData.session);
     assertEquals(startData.session.status, "goal_validation");
@@ -56,25 +60,37 @@ describe("Scenario: Full intake journey", () => {
     // Step 2: Agent sends messages advancing through phases
     const msg1 = await client.callTool({
       name: "send_intake_message",
-      arguments: { content: "What is your learning goal?", phase: "goal_validation" },
+      arguments: {
+        content: "What is your learning goal?",
+        phase: "goal_validation",
+      },
     });
     assertEquals(parse(msg1).phase, "goal_validation");
 
     const msg2 = await client.callTool({
       name: "send_intake_message",
-      arguments: { content: "Tell me about your background.", phase: "profile_validation" },
+      arguments: {
+        content: "Tell me about your background.",
+        phase: "profile_validation",
+      },
     });
     assertEquals(parse(msg2).phase, "profile_validation");
 
     const msg3 = await client.callTool({
       name: "send_intake_message",
-      arguments: { content: "Let me assess your current level.", phase: "baseline" },
+      arguments: {
+        content: "Let me assess your current level.",
+        phase: "baseline",
+      },
     });
     assertEquals(parse(msg3).phase, "baseline");
 
     const msg4 = await client.callTool({
       name: "send_intake_message",
-      arguments: { content: "Here is the gap analysis.", phase: "gap_analysis" },
+      arguments: {
+        content: "Here is the gap analysis.",
+        phase: "gap_analysis",
+      },
     });
     assertEquals(parse(msg4).phase, "gap_analysis");
 
@@ -95,13 +111,37 @@ describe("Scenario: Full intake journey", () => {
           overallFeasible: true,
           estimatedWeeks: 8,
           phaseGaps: [
-            { phaseId: 1, phaseName: "Fundamentals", gapSize: "moderate", estimatedWeeks: 4, strategy: "analogy" },
-            { phaseId: 2, phaseName: "Advanced", gapSize: "large", estimatedWeeks: 4, strategy: "first_principles" },
+            {
+              phaseId: 1,
+              phaseName: "Fundamentals",
+              gapSize: "moderate",
+              estimatedWeeks: 4,
+              strategy: "analogy",
+            },
+            {
+              phaseId: 2,
+              phaseName: "Advanced",
+              gapSize: "large",
+              estimatedWeeks: 4,
+              strategy: "first_principles",
+            },
           ],
         }),
         baselineResults: [
-          { phaseId: 1, questionId: "q1", question: "Fundamentals Q", answer: "A1", suggestedLevel: 2 },
-          { phaseId: 2, questionId: "q2", question: "Advanced Q", answer: "A2", suggestedLevel: 1 },
+          {
+            phaseId: 1,
+            questionId: "q1",
+            question: "Fundamentals Q",
+            answer: "A1",
+            suggestedLevel: 2,
+          },
+          {
+            phaseId: 2,
+            questionId: "q2",
+            question: "Advanced Q",
+            answer: "A2",
+            suggestedLevel: 1,
+          },
         ],
       },
     });

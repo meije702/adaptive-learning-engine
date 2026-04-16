@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "@std/testing/bdd";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { assertEquals } from "jsr:@std/assert";
 import { createTestKv } from "@/test_helpers.ts";
 import type { Repositories } from "@/db/repositories.ts";
@@ -28,8 +28,16 @@ describe("KvInteractionLogRepository", () => {
     it("should store and retrieve an interaction log", async () => {
       const log = {
         events: [
-          { type: "click", target: "hint-button", timestamp: "2026-01-15T10:00:00Z" },
-          { type: "submit", target: "answer-form", timestamp: "2026-01-15T10:05:00Z" },
+          {
+            type: "click",
+            target: "hint-button",
+            timestamp: "2026-01-15T10:00:00Z",
+          },
+          {
+            type: "submit",
+            target: "answer-form",
+            timestamp: "2026-01-15T10:05:00Z",
+          },
         ],
         duration: 300,
       };
@@ -44,7 +52,10 @@ describe("KvInteractionLogRepository", () => {
   describe("overwrite", () => {
     it("should overwrite an existing log for the same day content id", async () => {
       const first = { events: [{ type: "start" }], duration: 60 };
-      const second = { events: [{ type: "start" }, { type: "complete" }], duration: 180 };
+      const second = {
+        events: [{ type: "start" }, { type: "complete" }],
+        duration: 180,
+      };
 
       await repos.interactionLogs.put("day-1", first);
       await repos.interactionLogs.put("day-1", second);

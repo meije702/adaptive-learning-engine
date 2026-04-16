@@ -137,8 +137,12 @@ export interface RetentionRepository {
 export interface CalibrationRepository {
   getByDomain(domainId: string): Promise<CalibrationEntry[]>;
   getRecent(limit: number): Promise<CalibrationEntry[]>;
-  create(entry: Omit<CalibrationEntry, "id" | "createdAt">): Promise<CalibrationEntry>;
-  getSummary(): Promise<{ domainId: string; avgDelta: number; count: number }[]>;
+  create(
+    entry: Omit<CalibrationEntry, "id" | "createdAt">,
+  ): Promise<CalibrationEntry>;
+  getSummary(): Promise<
+    { domainId: string; avgDelta: number; count: number }[]
+  >;
 }
 
 export interface InteractionLogRepository {
