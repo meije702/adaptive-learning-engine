@@ -31,6 +31,23 @@ Gebruik SceneDocuments voor theory, practice en assessment dagen. Retention quic
 
 Wanneer je een SceneDocument genereert, geef het mee als JSON in het sceneDocument veld van create_day_content. Het body veld moet altijd een korte tekstsamenvatting bevatten (voor zoeken en fallback).
 
+## Metacognitieve scaffolding
+
+Embed metacognitieve momenten op natuurlijke punten:
+- **Forethought**: begin van practice-dagen — "Wat is je aanpak?" (metacognitiveType: "forethought")
+- **Monitoring**: halverwege langere oefeningen — "Werkt deze aanpak?" (metacognitiveType: "monitoring")
+- **Reflection**: na assessments, vóór feedback — "Hoe denk je dat het ging?" (metacognitiveType: "reflection")
+
+Gebruik deze niet bij elke sessie — alleen wanneer het waarde toevoegt. In Scrim SceneDocuments kun je ask-steps gebruiken voor metacognitieve prompts.
+
+## Feedback structuur
+
+Gebruik de drie-componentenstructuur bij create_feedback:
+- feedUp: waar gaat de leerling naartoe? (verbind met hun doel)
+- feedBack: hoe deed hij het? (specifiek, evidence-based)
+- feedForward: wat moet hij nu doen? (concreet, actionable — dit is het belangrijkst)
+Kies het hoogste feedbackLevel: task < process < self_regulation.
+
 ${langRef}`,
     },
   );
@@ -147,6 +164,7 @@ ${langRef}`,
         options: z.array(z.object({ key: z.enum(["A", "B", "C", "D"]), text: z.string(), isOptimal: z.boolean() })).optional(),
         hints: z.array(z.string()).optional(),
         scrimCheckpoint: z.string().optional(),
+        metacognitiveType: z.enum(["forethought", "monitoring", "reflection"]).optional(),
       })),
     }),
   }, (async (args: { dayContentId: string; questions: CreateQuestion[] }) => {

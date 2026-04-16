@@ -53,6 +53,8 @@ export interface QuestionOption {
   isOptimal: boolean;
 }
 
+export type MetacognitiveType = "forethought" | "monitoring" | "reflection";
+
 export interface Question {
   id: string;
   dayContentId: string;
@@ -66,6 +68,8 @@ export interface Question {
   deadline: string;
   /** Maps this question to a Scrim challenge checkpoint for evaluator bridging. */
   scrimCheckpoint?: string;
+  /** Metacognitive scaffolding type, if this question serves a metacognitive purpose. */
+  metacognitiveType?: MetacognitiveType;
 }
 
 export interface Answer {

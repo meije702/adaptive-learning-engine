@@ -52,6 +52,7 @@ export interface CreateQuestion {
   maxLevel: number;
   deadline: string;
   scrimCheckpoint?: string;
+  metacognitiveType?: "forethought" | "monitoring" | "reflection";
 }
 
 export interface CreateAnswer {
