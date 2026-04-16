@@ -39,8 +39,7 @@ export default function ScrimPlayer(
 
       const scene = interpret(
         sceneDocument as Parameters<typeof interpret>[0],
-        // deno-lint-ignore no-explicit-any
-        { challengeRunner: conductChallenge as any },
+        { challengeRunner: conductChallenge as never },
       );
 
       const renderer = new WebRenderer();
@@ -67,12 +66,11 @@ export default function ScrimPlayer(
         return res.json();
       };
 
-      // deno-lint-ignore no-explicit-any
       const runtime = new ScrimRuntime<HTMLElement>({
         scene,
         renderer,
         host: containerRef.current!,
-        replayLog: interactionLog as any,
+        replayLog: interactionLog as never,
         evaluator,
       });
 

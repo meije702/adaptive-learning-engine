@@ -46,6 +46,7 @@ export default function SelfAssessment({ questionId }: SelfAssessmentProps) {
       <div style="display: flex; gap: 0.5rem;">
         {(["correct", "partial", "incorrect"] as const).map((score) => (
           <button
+            type="button"
             key={score}
             onClick={() => handlePredict(score)}
             disabled={submitting}

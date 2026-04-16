@@ -152,6 +152,7 @@ export default function IntakeChat(
               style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; resize: none; font-family: inherit;"
             />
             <button
+              type="button"
               onClick={handleSend}
               disabled={sending || !input.trim()}
               style={`padding: 0 1.25rem; border-radius: 0.5rem; border: none; font-size: 0.875rem; font-weight: 600; cursor: pointer; ${

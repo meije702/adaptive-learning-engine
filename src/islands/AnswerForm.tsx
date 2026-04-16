@@ -73,6 +73,7 @@ export default function AnswerForm(
           </label>
         ))}
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!answer || submitting}
           style={`margin-top: 0.25rem; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; ${
@@ -103,6 +104,7 @@ export default function AnswerForm(
         style="padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; font-family: inherit; resize: vertical;"
       />
       <button
+        type="button"
         onClick={handleSubmit}
         disabled={!answer.trim() || submitting}
         style={`align-self: flex-start; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; ${
