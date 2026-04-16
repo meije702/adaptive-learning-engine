@@ -3,6 +3,7 @@ import { define } from "../utils.ts";
 import ScrimPlayer from "../islands/ScrimPlayer.tsx";
 import AnswerForm from "../islands/AnswerForm.tsx";
 import { FeedbackCard } from "../components/FeedbackCard.tsx";
+import { isFeedbackVisible } from "../feedback_visibility.ts";
 
 export default define.page(async function TodayView(ctx) {
   const { repos, config } = ctx.state;
@@ -54,22 +55,7 @@ export default define.page(async function TodayView(ctx) {
     );
   }
 
-  // Feedback visibility gating: on assessment days, don't show feedback before the configured time
-  const now = new Date();
-  const feedbackDay = schedule.feedback_available_day;
-  const feedbackTime = schedule.feedback_available_time;
-  const isAssessmentDay = today.type === "assessment";
-  let feedbackVisible = true;
-  if (isAssessmentDay && feedbackDay !== undefined && feedbackTime) {
-    const currentDay = now.getDay();
-    if (
-      currentDay < feedbackDay ||
-      (currentDay === feedbackDay &&
-        now.toTimeString().slice(0, 5) < feedbackTime)
-    ) {
-      feedbackVisible = false;
-    }
-  }
+  const feedbackVisible = isFeedbackVisible(schedule, today.type, new Date());
 
   const questions = await repos.questions.getByDay(today.id);
   const questionsWithAnswers = await Promise.all(

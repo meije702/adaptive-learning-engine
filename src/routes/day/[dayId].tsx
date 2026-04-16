@@ -3,6 +3,7 @@ import { define } from "../../utils.ts";
 import ScrimPlayer from "../../islands/ScrimPlayer.tsx";
 import AnswerForm from "../../islands/AnswerForm.tsx";
 import { FeedbackCard } from "../../components/FeedbackCard.tsx";
+import { isFeedbackVisible } from "../../feedback_visibility.ts";
 
 export default define.page(async function DayView(ctx) {
   const { repos, config } = ctx.state;
@@ -23,11 +24,17 @@ export default define.page(async function DayView(ctx) {
     );
   }
 
+  const feedbackVisible = isFeedbackVisible(
+    config.learner.schedule,
+    day.type,
+    new Date(),
+  );
+
   const questions = await repos.questions.getByDay(day.id);
   const questionsWithAnswers = await Promise.all(
     questions.map(async (q) => {
       const answer = await repos.answers.getByQuestion(q.id);
-      const feedback = answer
+      const feedback = (answer && feedbackVisible)
         ? await repos.feedback.getByAnswer(answer.id)
         : null;
       return { question: q, answer, feedback };
