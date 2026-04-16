@@ -43,11 +43,25 @@ export default define.page(async function TodayView(ctx) {
     );
   }
 
+  // Feedback visibility gating: on assessment days, don't show feedback before the configured time
+  const now = new Date();
+  const feedbackDay = schedule.feedback_available_day;
+  const feedbackTime = schedule.feedback_available_time;
+  const isAssessmentDay = today.type === "assessment";
+  let feedbackVisible = true;
+  if (isAssessmentDay && feedbackDay !== undefined && feedbackTime) {
+    const currentDay = now.getDay();
+    if (currentDay < feedbackDay ||
+      (currentDay === feedbackDay && now.toTimeString().slice(0, 5) < feedbackTime)) {
+      feedbackVisible = false;
+    }
+  }
+
   const questions = await repos.questions.getByDay(today.id);
   const questionsWithAnswers = await Promise.all(
     questions.map(async (q) => {
       const answer = await repos.answers.getByQuestion(q.id);
-      const feedback = answer
+      const feedback = (answer && feedbackVisible)
         ? await repos.feedback.getByAnswer(answer.id)
         : null;
       return { question: q, answer, feedback };

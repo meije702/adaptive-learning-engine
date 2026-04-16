@@ -5,6 +5,7 @@ import type { AppConfig } from "../config/loader.ts";
 import { validateSceneDocument } from "../scrim/validate.ts";
 import { loadLanguageReference } from "../scrim/language_reference.ts";
 import { computeGapAnalysis } from "../analysis/gap.ts";
+import { SCHEDULED_TASKS } from "../tasks/manifest.ts";
 
 // deno-lint-ignore no-explicit-any
 type AnyCallback = (...args: any[]) => any;
@@ -229,6 +230,18 @@ ${langRef}`,
     inputSchema: z.object({ weekNumber: z.number(), retrospective: z.string() }),
   }, (async (args: { weekNumber: number; retrospective: string }) => {
     return txt(await repos.weeks.addRetrospective(args.weekNumber, args.retrospective));
+  }) as AnyCallback);
+
+  // ── Scheduling ────────────────────────────
+
+  server.registerTool("get_scheduled_tasks", {
+    description: "Haal het taakmanifest op: welke taken moet de agent uitvoeren en wanneer. Bevat ook de huidige schedule configuratie van de leerling.",
+    inputSchema: z.object({}),
+  }, (async () => {
+    return txt({
+      tasks: SCHEDULED_TASKS,
+      schedule: config.learner.schedule,
+    });
   }) as AnyCallback);
 
   // ── Calibration ───────────────────────────
