@@ -208,5 +208,139 @@ ${langRef}`,
     return txt(await repos.weeks.addRetrospective(args.weekNumber, args.retrospective));
   }) as AnyCallback);
 
+  // ── Intake ────────────────────────────────
+
+  server.registerTool("start_intake", {
+    description: "Start of hervat de intake. Maakt een IntakeSession aan als die nog niet bestaat. Retourneert de sessie plus learner config samenvatting en curriculum bridge voor context.",
+    inputSchema: z.object({}),
+  }, (async () => {
+    let session = await repos.intake.getSession();
+    if (!session) {
+      session = {
+        id: crypto.randomUUID(),
+        status: "goal_validation",
+        startedAt: new Date().toISOString(),
+        baselineResults: [],
+      };
+      await repos.intake.putSession(session);
+    }
+    return txt({
+      session,
+      learner: {
+        profile: config.learner.profile,
+        background: config.learner.background,
+      },
+      curriculum: {
+        meta: config.curriculum.meta,
+        bridge: config.curriculum.bridge,
+        phases: config.curriculum.phases,
+      },
+    });
+  }) as AnyCallback);
+
+  server.registerTool("send_intake_message", {
+    description: "Stuur een bericht in het intake-gesprek. De agent gebruikt dit om vragen te stellen, feedback te geven, en analyses te delen. Optioneel kan de fase worden bijgewerkt.",
+    inputSchema: z.object({
+      content: z.string(),
+      phase: z.enum([
+        "goal_validation", "profile_validation", "baseline",
+        "gap_analysis", "confirmation", "completed",
+      ]).optional(),
+    }),
+  }, (async (args: { content: string; phase?: string }) => {
+    const session = await repos.intake.getSession();
+    if (!session) return txt({ error: "No intake session. Call start_intake first." });
+
+    // Advance phase if specified
+    if (args.phase && args.phase !== session.status) {
+      session.status = args.phase as typeof session.status;
+      await repos.intake.putSession(session);
+    }
+
+    const message = await repos.intake.addMessage({
+      role: "agent",
+      content: args.content,
+      phase: session.status,
+    });
+    return txt(message);
+  }) as AnyCallback);
+
+  server.registerTool("complete_intake", {
+    description: "Rond de intake af. Slaat gap-analyse en baseline resultaten op. Zet initiële competentieniveaus en markeert de intake als voltooid.",
+    inputSchema: z.object({
+      gapAnalysis: z.object({
+        overallFeasible: z.boolean(),
+        estimatedWeeks: z.number(),
+        phaseGaps: z.array(z.object({
+          phaseId: z.number(),
+          phaseName: z.string(),
+          gapSize: z.enum(["small", "moderate", "large", "very_large"]),
+          estimatedWeeks: z.number(),
+          strategy: z.enum(["analogy", "first_principles", "contrast", "scaffolded", "accelerated"]),
+        })),
+        riskFactors: z.array(z.string()),
+        accelerators: z.array(z.string()),
+        recommendation: z.string().optional(),
+      }),
+      baselineResults: z.array(z.object({
+        phaseId: z.number(),
+        questionId: z.string(),
+        question: z.string(),
+        answer: z.string(),
+        suggestedLevel: z.number().min(0).max(5),
+      })),
+    }),
+  }, (async (args: {
+    gapAnalysis: {
+      overallFeasible: boolean;
+      estimatedWeeks: number;
+      phaseGaps: { phaseId: number; phaseName: string; gapSize: string; estimatedWeeks: number; strategy: string }[];
+      riskFactors: string[];
+      accelerators: string[];
+      recommendation?: string;
+    };
+    baselineResults: { phaseId: number; questionId: string; question: string; answer: string; suggestedLevel: number }[];
+  }) => {
+    const session = await repos.intake.getSession();
+    if (!session) return txt({ error: "No intake session. Call start_intake first." });
+
+    // Update session with results
+    session.status = "completed";
+    session.completedAt = new Date().toISOString();
+    session.gapAnalysis = args.gapAnalysis as typeof session.gapAnalysis;
+    session.baselineResults = args.baselineResults;
+    await repos.intake.putSession(session);
+
+    // Set initial progress levels from baseline results
+    // Group by domain: find which domains belong to each phase and set levels
+    for (const result of args.baselineResults) {
+      const phaseDomains = config.curriculum.domains.filter(
+        (d) => d.phase === result.phaseId,
+      );
+      for (const domain of phaseDomains) {
+        await repos.progress.put(domain.id, {
+          level: result.suggestedLevel as 0 | 1 | 2 | 3 | 4 | 5,
+          source: "manual",
+          notes: `Intake baseline: ${result.question}`,
+        });
+      }
+    }
+
+    // Update learner state
+    await repos.learnerState.put({
+      intake: { completed: true, completedAt: session.completedAt },
+      wellbeing: { status: "active" },
+    });
+
+    // Send completion message
+    await repos.intake.addMessage({
+      role: "agent",
+      content: "Intake voltooid. Het leertraject kan beginnen.",
+      phase: "completed",
+    });
+
+    return txt(session);
+  }) as AnyCallback);
+
   return server;
 }

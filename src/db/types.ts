@@ -95,3 +95,69 @@ export interface RetentionSchedule {
   streak: number;
   lastResult: "correct" | "partial" | "incorrect";
 }
+
+// ── Learner runtime state (mutable overlay on static YAML config) ──
+
+export interface LearnerState {
+  intake: {
+    completed: boolean;
+    completedAt?: string;
+  };
+  wellbeing: {
+    status: "active" | "paused" | "returning";
+    pausedAt?: string;
+    returnedAt?: string;
+  };
+}
+
+// ── Intake ──
+
+export type IntakePhase =
+  | "goal_validation"
+  | "profile_validation"
+  | "baseline"
+  | "gap_analysis"
+  | "confirmation"
+  | "completed";
+
+export interface IntakeSession {
+  id: string;
+  status: IntakePhase;
+  startedAt: string;
+  completedAt?: string;
+  baselineResults: BaselineResult[];
+  gapAnalysis?: GapAnalysis;
+}
+
+export interface IntakeMessage {
+  id: string;
+  role: "agent" | "learner";
+  content: string;
+  timestamp: string;
+  phase: IntakePhase;
+}
+
+export interface BaselineResult {
+  phaseId: number;
+  questionId: string;
+  question: string;
+  answer: string;
+  suggestedLevel: number;
+}
+
+export interface GapAnalysis {
+  overallFeasible: boolean;
+  estimatedWeeks: number;
+  phaseGaps: PhaseGap[];
+  riskFactors: string[];
+  accelerators: string[];
+  recommendation?: string;
+}
+
+export interface PhaseGap {
+  phaseId: number;
+  phaseName: string;
+  gapSize: "small" | "moderate" | "large" | "very_large";
+  estimatedWeeks: number;
+  strategy: "analogy" | "first_principles" | "contrast" | "scaffolded" | "accelerated";
+}

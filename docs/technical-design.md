@@ -571,6 +571,14 @@ learner state), **generate** (write content and feedback), and **steer**
 | `update_retention` | domainId, result | updates SM-2 schedule after retention test |
 | `add_retrospective` | weekNumber, retrospective | adds end-of-week reflection to WeekPlan |
 
+#### Intake tools
+
+| Tool | Input | Effect |
+|------|-------|--------|
+| `start_intake` | none | creates or resumes IntakeSession, returns session + config context |
+| `send_intake_message` | content, phase? | sends agent message, optionally advances intake phase |
+| `complete_intake` | gapAnalysis, baselineResults | finalizes intake, sets baseline Progress, marks completed |
+
 ### 4.3 Agent behavioral instructions
 
 The AI agent's behavioral contract is defined in `CLAUDE.md` at the
@@ -825,6 +833,58 @@ This informs next-day content generation and difficulty calibration.
 
 ---
 
+## 5.5 Intake flow (AI <-> Learner via ALE)
+
+Before any learning content is generated, the AI agent conducts an
+intake conversation. The intake validates the learner's goal, verifies
+their background, runs a baseline measurement, performs gap analysis,
+and presents honest feasibility advice.
+
+**Data model:**
+
+`LearnerState` (KV singleton) -- mutable runtime overlay on static YAML:
+- `intake.completed`, `intake.completedAt`
+- `wellbeing.status` ("active" | "paused" | "returning")
+
+`IntakeSession` (KV singleton) -- tracks conversation state:
+- `status`: goal_validation -> profile_validation -> baseline ->
+  gap_analysis -> confirmation -> completed
+- `baselineResults[]`: per-phase baseline assessment results
+- `gapAnalysis`: feasibility, risk factors, accelerators, per-phase
+  strategy recommendations
+
+`IntakeMessage` (KV, ordered by timestamp) -- conversation history:
+- `role`: "agent" | "learner"
+- `content`: message text
+- `phase`: which intake phase this message belongs to
+
+**MCP tools:**
+
+| Tool | Input | Effect |
+|------|-------|--------|
+| `start_intake` | none | Creates IntakeSession, returns session + learner config + curriculum bridge |
+| `send_intake_message` | content, phase? | Agent sends a message, optionally advances the phase |
+| `complete_intake` | gapAnalysis, baselineResults | Finalizes: stores results, sets Progress levels, marks LearnerState.intake.completed |
+
+**UI:** `/intake` shows a conversational interface (IntakeChat island).
+The learner reads agent messages and responds via text input. The island
+polls for new agent messages. The dashboard shows an intake banner when
+`LearnerState.intake.completed` is false.
+
+**Flow:**
+```
+1. Agent calls start_intake -> gets config context
+2. Agent sends goal validation questions via send_intake_message
+3. Learner responds via POST /api/intake/messages
+4. Agent reads responses, validates profile, runs baseline questions
+5. Agent advances phases as appropriate
+6. Agent calls complete_intake with gap analysis + baseline results
+7. ALE sets initial Progress levels and marks intake completed
+8. First week plan can now be generated
+```
+
+---
+
 ## 6. REST API
 
 All endpoints return JSON. Error responses use RFC 7807 Problem Details.
@@ -872,6 +932,14 @@ All endpoints return JSON. Error responses use RFC 7807 Problem Details.
 |--------|----------|-------------|
 | GET | `/api/dashboard/summary` | Dashboard stats |
 | GET | `/api/dashboard/week/:weekNumber` | Week details |
+
+### Intake
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/intake` | Current IntakeSession |
+| GET | `/api/intake/messages?since=` | Intake messages (optional timestamp filter) |
+| POST | `/api/intake/messages` | Learner sends a message |
 
 ### Scrim integration
 

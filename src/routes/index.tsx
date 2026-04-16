@@ -23,12 +23,16 @@ export default define.page(async function Dashboard(ctx) {
   const { repos, config } = ctx.state;
   const { curriculum, learner } = config;
 
-  const [progress, weeks, pending, retentionDue] = await Promise.all([
-    repos.progress.getAll(),
-    repos.weeks.getAll(),
-    repos.questions.getPending(),
-    repos.retention.getDue(),
-  ]);
+  const [progress, weeks, pending, retentionDue, learnerState] = await Promise
+    .all([
+      repos.progress.getAll(),
+      repos.weeks.getAll(),
+      repos.questions.getPending(),
+      repos.retention.getDue(),
+      repos.learnerState.get(),
+    ]);
+
+  const intakeCompleted = learnerState?.intake?.completed ?? false;
 
   const progressMap = new Map(progress.map((p) => [p.domainId, p]));
   const currentWeek = weeks.length > 0
@@ -57,6 +61,17 @@ export default define.page(async function Dashboard(ctx) {
           {learner.profile.name} — {curriculum.meta.description}
         </p>
       </header>
+
+      {/* Intake banner */}
+      {!intakeCompleted && (
+        <a
+          href="/intake"
+          style="display: block; padding: 1rem; margin-bottom: 1.5rem; background: #fef3c7; border: 1px solid #fde68a; border-radius: 0.5rem; color: #92400e; text-decoration: none;"
+        >
+          <strong>Intake vereist</strong> — Voordat het leertraject kan beginnen
+          moet de intake worden doorlopen. Klik hier om te starten.
+        </a>
+      )}
 
       {/* Stats row */}
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">

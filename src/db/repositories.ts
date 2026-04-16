@@ -3,6 +3,10 @@ import type {
   DayContent,
   DayType,
   Feedback,
+  IntakeMessage,
+  IntakePhase,
+  IntakeSession,
+  LearnerState,
   Progress,
   Question,
   QuestionOption,
@@ -128,6 +132,20 @@ export interface InteractionLogRepository {
   put(dayContentId: string, log: unknown): Promise<void>;
 }
 
+export interface LearnerStateRepository {
+  get(): Promise<LearnerState | null>;
+  put(state: LearnerState): Promise<void>;
+}
+
+export interface IntakeRepository {
+  getSession(): Promise<IntakeSession | null>;
+  putSession(session: IntakeSession): Promise<void>;
+  addMessage(
+    msg: { role: "agent" | "learner"; content: string; phase: IntakePhase },
+  ): Promise<IntakeMessage>;
+  getMessages(since?: string): Promise<IntakeMessage[]>;
+}
+
 // --- Aggregate ---
 
 export interface Repositories {
@@ -139,4 +157,6 @@ export interface Repositories {
   feedback: FeedbackRepository;
   retention: RetentionRepository;
   interactionLogs: InteractionLogRepository;
+  learnerState: LearnerStateRepository;
+  intake: IntakeRepository;
 }
