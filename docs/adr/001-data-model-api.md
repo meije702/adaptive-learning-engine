@@ -481,7 +481,7 @@ Secondary indexes via dubbele writes voor efficiente queries.
 | -------------- | ------------------------ | -------------------------------------------------------- |
 | Runtime        | Deno + Fresh             | Native TypeScript, Deno Deploy hosting, Deno KV storage  |
 | Auth           | Simpele bearer token     | Single-user systeem, geen complexe auth nodig            |
-| MCP transport  | SSE (Server-Sent Events) | Standaard MCP transport, werkt met Claude connectors     |
+| MCP transport  | Stdio                    | Lokale process-transport voor Claude Desktop/Code en huidige MCP entrypoint |
 | Content format | Markdown                 | Universeel, renderbaar in Fresh, leesbaar als plain text |
 | API style      | REST + RFC 9457          | Bekend terrein, Zalando-compatible                       |
 | Timezone       | Europe/Amsterdam         | Alle timestamps UTC, display in lokale tijd              |

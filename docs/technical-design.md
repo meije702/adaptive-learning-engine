@@ -82,7 +82,9 @@ src/
   mcp/
     main.ts                  MCP server entrypoint (stdio)
     server.ts                Tool definitions
-    handler.ts               Transport layer
+    handler.ts               Stdio transport layer
+    sdk_compat.js            Runtime bridge for MCP SDK imports under Deno
+    sdk_compat.d.ts          Local types for the compat bridge
   scrim/
     validate.ts              SceneDocument validation wrapper
     language_reference.ts    Loads Scrim language ref for MCP
@@ -891,6 +893,11 @@ Scrim evaluate effect
   -> Scrim renders feedback node based on result
 ```
 
+`dayContentId` is required, not advisory metadata. ALE returns `400` when it is
+missing or empty, and also when `evaluatorKey` resolves to a question whose
+`dayContentId` does not match the submitted day. This prevents stale clients
+from attaching answers to the wrong day content.
+
 **Evaluation result mapping (Scrim -> ALE):**
 
 | Scrim EvaluationResult         | ALE Feedback.score |
@@ -1082,7 +1089,7 @@ All endpoints return JSON. Error responses use RFC 7807 Problem Details.
 
 | Method  | Endpoint                                  | Description                           |
 | ------- | ----------------------------------------- | ------------------------------------- |
-| POST    | `/api/evaluate`                           | Evaluator bridge for Scrim challenges |
+| POST    | `/api/evaluate`                           | Evaluator bridge for Scrim challenges; requires `dayContentId` and validates checkpoint/day match |
 | GET/PUT | `/api/days/:dayContentId/interaction-log` | Interaction log persistence           |
 
 ---
@@ -1114,8 +1121,9 @@ Located at `src/islands/ScrimPlayer.tsx`. A Preact component that:
 2. In `useEffect`, creates a container div ref and dynamically imports all
    `@scrim/*` packages (client-side only).
 3. Constructs the runtime with the evaluator bridge:
-   - The evaluator calls `POST /api/evaluate` with the response, evaluatorKey,
-     and dayContentId.
+  - The evaluator calls `POST /api/evaluate` with the response, `evaluatorKey`,
+    and required `dayContentId`. ALE rejects missing/empty day ids and
+    checkpoint/day mismatches with `400`.
 4. Calls `runtime.run()`.
 5. On completion or unmount: persists the interaction log via
    `PUT /api/days/:id/interaction-log`.
