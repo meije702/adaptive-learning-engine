@@ -1087,10 +1087,10 @@ All endpoints return JSON. Error responses use RFC 7807 Problem Details.
 
 ### Scrim integration
 
-| Method  | Endpoint                                  | Description                           |
-| ------- | ----------------------------------------- | ------------------------------------- |
+| Method  | Endpoint                                  | Description                                                                                       |
+| ------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | POST    | `/api/evaluate`                           | Evaluator bridge for Scrim challenges; requires `dayContentId` and validates checkpoint/day match |
-| GET/PUT | `/api/days/:dayContentId/interaction-log` | Interaction log persistence           |
+| GET/PUT | `/api/days/:dayContentId/interaction-log` | Interaction log persistence                                                                       |
 
 ---
 
@@ -1121,9 +1121,11 @@ Located at `src/islands/ScrimPlayer.tsx`. A Preact component that:
 2. In `useEffect`, creates a container div ref and dynamically imports all
    `@scrim/*` packages (client-side only).
 3. Constructs the runtime with the evaluator bridge:
-  - The evaluator calls `POST /api/evaluate` with the response, `evaluatorKey`,
-    and required `dayContentId`. ALE rejects missing/empty day ids and
-    checkpoint/day mismatches with `400`.
+
+- The evaluator calls `POST /api/evaluate` with the response, `evaluatorKey`,
+  and required `dayContentId`. ALE rejects missing/empty day ids and
+  checkpoint/day mismatches with `400`.
+
 4. Calls `runtime.run()`.
 5. On completion or unmount: persists the interaction log via
    `PUT /api/days/:id/interaction-log`.

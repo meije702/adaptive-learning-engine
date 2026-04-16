@@ -17,38 +17,38 @@ app.use(staticFiles());
 
 // Auth middleware for API routes
 app.use((ctx) => {
-    if (
-        ctx.url.pathname.startsWith("/api/") &&
-        config.system.auth.type === "bearer"
-    ) {
-        const token = ctx.req.headers.get("Authorization")?.replace("Bearer ", "");
-        const expected = Deno.env.get("ALE_AUTH_TOKEN");
-        if (expected && token !== expected) {
-            return new Response(
-                JSON.stringify({
-                    type: "https://learning.app/errors/unauthorized",
-                    title: "Unauthorized",
-                    status: 401,
-                }),
-                {
-                    status: 401,
-                    headers: { "Content-Type": "application/problem+json" },
-                },
-            );
-        }
+  if (
+    ctx.url.pathname.startsWith("/api/") &&
+    config.system.auth.type === "bearer"
+  ) {
+    const token = ctx.req.headers.get("Authorization")?.replace("Bearer ", "");
+    const expected = Deno.env.get("ALE_AUTH_TOKEN");
+    if (expected && token !== expected) {
+      return new Response(
+        JSON.stringify({
+          type: "https://learning.app/errors/unauthorized",
+          title: "Unauthorized",
+          status: 401,
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/problem+json" },
+        },
+      );
     }
-    return ctx.next();
+  }
+  return ctx.next();
 });
 
 app.use((ctx) => {
-    ctx.state.config = config;
-    ctx.state.repos = repos;
-    return ctx.next();
+  ctx.state.config = config;
+  ctx.state.repos = repos;
+  return ctx.next();
 });
 
 const loggerMiddleware = define.middleware((ctx) => {
-    console.log(`${ctx.req.method} ${ctx.req.url}`);
-    return ctx.next();
+  console.log(`${ctx.req.method} ${ctx.req.url}`);
+  return ctx.next();
 });
 app.use(loggerMiddleware);
 
