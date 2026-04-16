@@ -12,6 +12,8 @@
 
 import type { z } from "zod";
 import { McpServer } from "./sdk_compat.js";
+import { log } from "../obs/logger.ts";
+import { newCorrelationId, withCorrelationId } from "../obs/correlation.ts";
 
 // deno-lint-ignore no-explicit-any
 type AnyCallback = (...args: any[]) => any;
@@ -33,10 +35,33 @@ export function defineTool<TSchema extends z.ZodTypeAny>(
   config: { description: string; inputSchema: TSchema },
   handler: (args: z.infer<TSchema>) => ToolResult | Promise<ToolResult>,
 ): void {
+  const wrapped = async (args: z.infer<TSchema>): Promise<ToolResult> => {
+    const correlationId = newCorrelationId();
+    const started = performance.now();
+    return await withCorrelationId(correlationId, async () => {
+      try {
+        const result = await handler(args);
+        log.info("mcp_tool", {
+          name,
+          ok: true,
+          durationMs: Math.round(performance.now() - started),
+        });
+        return result;
+      } catch (err) {
+        log.error("mcp_tool_error", {
+          name,
+          durationMs: Math.round(performance.now() - started),
+          error: err instanceof Error ? err.message : String(err),
+        });
+        throw err;
+      }
+    });
+  };
+
   server.registerTool(
     name,
     { description: config.description, inputSchema: config.inputSchema },
-    handler as AnyCallback,
+    wrapped as AnyCallback,
   );
 }
 

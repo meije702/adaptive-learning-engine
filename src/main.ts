@@ -4,6 +4,8 @@ import { loadConfig } from "./config/loader.ts";
 import { getKv } from "./db/kv.ts";
 import { createRepositories } from "./db/factory.ts";
 import { seedDomains } from "./db/seed.ts";
+import { log } from "./obs/logger.ts";
+import { newCorrelationId, withCorrelationId } from "./obs/correlation.ts";
 
 const config = await loadConfig();
 const kv = await getKv();
@@ -46,9 +48,19 @@ app.use((ctx) => {
   return ctx.next();
 });
 
-const loggerMiddleware = define.middleware((ctx) => {
-  console.log(`${ctx.req.method} ${ctx.req.url}`);
-  return ctx.next();
+const loggerMiddleware = define.middleware(async (ctx) => {
+  const correlationId = newCorrelationId();
+  const started = performance.now();
+  return await withCorrelationId(correlationId, async () => {
+    const response = await ctx.next();
+    log.info("http", {
+      method: ctx.req.method,
+      url: ctx.url.pathname + ctx.url.search,
+      status: response.status,
+      durationMs: Math.round(performance.now() - started),
+    });
+    return response;
+  });
 });
 app.use(loggerMiddleware);
 
