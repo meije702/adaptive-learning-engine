@@ -58,3 +58,22 @@ export function methodNotAllowed(instance?: string): Response {
     instance,
   });
 }
+
+import { type DomainError, isDomainError } from "../domain/errors.ts";
+
+/**
+ * Map a thrown DomainError to an RFC 7807 problem+json response.
+ * Returns null if the value isn't a DomainError (caller decides what to do).
+ */
+export function problemFromDomainError(
+  err: unknown,
+  instance?: string,
+): Response | null {
+  if (!isDomainError(err)) return null;
+  const e = err as DomainError;
+  return problemResponse(e.status, {
+    title: e.name,
+    detail: e.message,
+    instance,
+  });
+}

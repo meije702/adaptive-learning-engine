@@ -14,6 +14,7 @@ import type { z } from "zod";
 import { McpServer } from "./sdk_compat.js";
 import { log } from "../obs/logger.ts";
 import { newCorrelationId, withCorrelationId } from "../obs/correlation.ts";
+import { isDomainError } from "../domain/errors.ts";
 
 // deno-lint-ignore no-explicit-any
 type AnyCallback = (...args: any[]) => any;
@@ -52,7 +53,13 @@ export function defineTool<TSchema extends z.ZodTypeAny>(
           name,
           durationMs: Math.round(performance.now() - started),
           error: err instanceof Error ? err.message : String(err),
+          code: isDomainError(err) ? err.code : undefined,
         });
+        // DomainErrors map to a structured tool result. Anything else
+        // rethrows — MCP transport will surface it as a protocol error.
+        if (isDomainError(err)) {
+          return txt({ error: err.message, code: err.code });
+        }
         throw err;
       }
     });
