@@ -1,6 +1,10 @@
 import { define } from "../../utils.ts";
 import { jsonResponse, parseJsonBody } from "../../api/helpers.ts";
 import { badRequest } from "../../api/error.ts";
+import {
+  computeCalibrationDelta,
+  type ScoreOutcome,
+} from "../../domain/calibration.ts";
 
 /**
  * POST /api/calibration
@@ -48,23 +52,15 @@ export const handler = define.handlers({
       );
     }
     const actualScore = feedback.score;
-
-    // Compute delta
-    const scoreOrder = { incorrect: 0, partial: 1, correct: 2 };
-    const predicted =
-      scoreOrder[body.predictedScore as keyof typeof scoreOrder];
-    const actual = scoreOrder[actualScore];
-    const delta = predicted > actual ? -1 : predicted < actual ? 1 : 0;
+    const predictedScore = body.predictedScore as ScoreOutcome;
+    const delta = computeCalibrationDelta(predictedScore, actualScore);
 
     const entry = await repos.calibration.create({
       questionId: body.questionId,
       domainId: question.domainId,
-      predictedScore: body.predictedScore as
-        | "correct"
-        | "partial"
-        | "incorrect",
+      predictedScore,
       actualScore,
-      delta: delta as -1 | 0 | 1,
+      delta,
     });
 
     return jsonResponse(entry, 201);

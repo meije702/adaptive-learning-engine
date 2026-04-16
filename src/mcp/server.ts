@@ -6,6 +6,9 @@ import { validateSceneDocument } from "../scrim/validate.ts";
 import { loadLanguageReference } from "../scrim/language_reference.ts";
 import { computeGapAnalysis } from "../analysis/gap.ts";
 import { SCHEDULED_TASKS } from "../tasks/manifest.ts";
+import { computeCalibrationDelta } from "../domain/calibration.ts";
+import { applyWellbeingTransition } from "../domain/wellbeing.ts";
+import { recordFeedbackAndProgress } from "../domain/feedback.ts";
 
 // deno-lint-ignore no-explicit-any
 type AnyCallback = (...args: any[]) => any;
@@ -309,17 +312,7 @@ ${langRef}`,
         feedbackLevel?: "task" | "process" | "self_regulation";
       },
     ) => {
-      const feedback = await repos.feedback.create(args);
-      if (args.applyLevel) {
-        const question = await repos.questions.get(args.questionId);
-        if (question) {
-          await repos.progress.put(question.domainId, {
-            level: args.suggestedLevel as 0 | 1 | 2 | 3 | 4 | 5,
-            source: "assessment",
-            notes: args.explanation,
-          });
-        }
-      }
+      const feedback = await recordFeedbackAndProgress(repos, args);
       return txt(feedback);
     }) as AnyCallback,
   );
@@ -438,17 +431,14 @@ ${langRef}`,
       }
 
       const actualScore = feedback.score;
-      const scoreOrder = { incorrect: 0, partial: 1, correct: 2 };
-      const predicted = scoreOrder[args.predictedScore];
-      const actual = scoreOrder[actualScore];
-      const delta = predicted > actual ? -1 : predicted < actual ? 1 : 0;
+      const delta = computeCalibrationDelta(args.predictedScore, actualScore);
 
       const entry = await repos.calibration.create({
         questionId: args.questionId,
         domainId: question.domainId,
         predictedScore: args.predictedScore,
         actualScore,
-        delta: delta as -1 | 0 | 1,
+        delta,
       });
 
       return txt(entry);
@@ -481,19 +471,10 @@ ${langRef}`,
     },
     (async (args: { status: "active" | "paused" | "returning" }) => {
       const current = await repos.learnerState.get();
-      const now = new Date().toISOString();
 
       const updated = {
         intake: current?.intake ?? { completed: false },
-        wellbeing: {
-          status: args.status,
-          pausedAt: args.status === "paused"
-            ? now
-            : current?.wellbeing?.pausedAt,
-          returnedAt: args.status === "returning" || args.status === "active"
-            ? now
-            : current?.wellbeing?.returnedAt,
-        },
+        wellbeing: applyWellbeingTransition(current?.wellbeing, args.status),
       };
 
       await repos.learnerState.put(updated);

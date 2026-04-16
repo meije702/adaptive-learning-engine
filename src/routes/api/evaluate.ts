@@ -1,6 +1,8 @@
 import { define } from "../../utils.ts";
 import { jsonResponse, parseJsonBody } from "../../api/helpers.ts";
 import { badRequest } from "../../api/error.ts";
+import { autoGradeMultipleChoice } from "../../domain/evaluate_mc.ts";
+import { recordFeedbackAndProgress } from "../../domain/feedback.ts";
 
 interface EvaluateRequest {
   response: unknown;
@@ -65,23 +67,14 @@ export const handler = define.handlers({
 
     // Multiple-choice: evaluate locally
     if (question.type === "multiple_choice" && question.options) {
-      const optimal = question.options.find((o) => o.isOptimal);
-      const correct = optimal
-        ? String(response) === optimal.key ||
-          String(response) === optimal.text
-        : false;
+      const graded = autoGradeMultipleChoice(question, response);
 
-      const score = correct ? "correct" : "incorrect";
-
-      // Create feedback record
-      await repos.feedback.create({
+      await recordFeedbackAndProgress(repos, {
         answerId: answer.id,
         questionId: question.id,
-        score,
-        explanation: correct
-          ? "Correct!"
-          : `Het juiste antwoord was: ${optimal?.text ?? "onbekend"}`,
-        suggestedLevel: correct
+        score: graded.correct ? "correct" : "incorrect",
+        explanation: graded.explanation,
+        suggestedLevel: graded.correct
           ? question.maxLevel
           : Math.max(0, question.maxLevel - 1),
         applyLevel: false,
@@ -89,11 +82,9 @@ export const handler = define.handlers({
       });
 
       return jsonResponse({
-        correct,
-        score: correct ? 1 : 0,
-        feedback: correct
-          ? "Correct!"
-          : `Het juiste antwoord was: ${optimal?.text ?? "onbekend"}`,
+        correct: graded.correct,
+        score: graded.score,
+        feedback: graded.explanation,
       });
     }
 

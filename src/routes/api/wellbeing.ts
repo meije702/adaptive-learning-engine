@@ -1,6 +1,10 @@
 import { define } from "../../utils.ts";
 import { jsonResponse, parseJsonBody } from "../../api/helpers.ts";
 import { badRequest } from "../../api/error.ts";
+import {
+  applyWellbeingTransition,
+  type WellbeingStatus,
+} from "../../domain/wellbeing.ts";
 
 /**
  * POST /api/wellbeing
@@ -23,17 +27,11 @@ export const handler = define.handlers({
 
     const { repos } = ctx.state;
     const current = await repos.learnerState.get();
-    const now = new Date().toISOString();
+    const nextStatus = body.status as WellbeingStatus;
 
     const updated = {
       intake: current?.intake ?? { completed: false },
-      wellbeing: {
-        status: body.status as "active" | "paused" | "returning",
-        pausedAt: body.status === "paused" ? now : current?.wellbeing?.pausedAt,
-        returnedAt: body.status === "returning" || body.status === "active"
-          ? now
-          : current?.wellbeing?.returnedAt,
-      },
+      wellbeing: applyWellbeingTransition(current?.wellbeing, nextStatus),
     };
 
     await repos.learnerState.put(updated);

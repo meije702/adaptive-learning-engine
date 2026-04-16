@@ -2,6 +2,7 @@ import { define } from "../../../../utils.ts";
 import { jsonResponse, parseJsonBody } from "../../../../api/helpers.ts";
 import { badRequest, notFound } from "../../../../api/error.ts";
 import type { CreateFeedback } from "../../../../db/repositories.ts";
+import { recordFeedbackAndProgress } from "../../../../domain/feedback.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -28,22 +29,10 @@ export const handler = define.handlers({
       );
     }
 
-    const feedback = await ctx.state.repos.feedback.create({
+    const feedback = await recordFeedbackAndProgress(ctx.state.repos, {
       ...body,
       answerId,
     });
-
-    // Side effect: update progress if applyLevel is true
-    if (body.applyLevel) {
-      const question = await ctx.state.repos.questions.get(body.questionId);
-      if (question) {
-        await ctx.state.repos.progress.put(question.domainId, {
-          level: body.suggestedLevel as 0 | 1 | 2 | 3 | 4 | 5,
-          source: "assessment",
-          notes: body.explanation,
-        });
-      }
-    }
 
     return jsonResponse(feedback, 201);
   },
