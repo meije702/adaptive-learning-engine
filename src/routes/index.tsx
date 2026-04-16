@@ -73,20 +73,37 @@ export default define.page(async function Dashboard(ctx) {
         </a>
       )}
 
+      {/* Today CTA */}
+      <a
+        href="/today"
+        style="display: block; padding: 1rem; margin-bottom: 1.5rem; background: #3b82f6; color: white; text-decoration: none; border-radius: 0.5rem; font-weight: 600; text-align: center;"
+      >
+        Naar vandaag →
+      </a>
+
       {/* Stats row */}
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
         <StatCard label="Voortgang" value={`${overallPct}%`} />
-        <StatCard
-          label="Huidige week"
-          value={currentWeek > 0 ? `${currentWeek}` : "—"}
-        />
-        <StatCard label="Open vragen" value={`${pending.length}`} />
-        <StatCard label="Retentie due" value={`${retentionDue.length}`} />
+        <a href={currentWeek > 0 ? `/week/${currentWeek}` : "#"} style="text-decoration: none; color: inherit;">
+          <StatCard
+            label="Huidige week"
+            value={currentWeek > 0 ? `${currentWeek}` : "—"}
+          />
+        </a>
+        <a href="/today" style="text-decoration: none; color: inherit;">
+          <StatCard label="Open vragen" value={`${pending.length}`} />
+        </a>
+        <a href="/retention" style="text-decoration: none; color: inherit;">
+          <StatCard label="Retentie due" value={`${retentionDue.length}`} />
+        </a>
       </div>
 
       {/* Current week plan */}
       {currentPlan && (
-        <section style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;">
+        <a
+          href={`/week/${currentPlan.weekNumber}`}
+          style="display: block; text-decoration: none; color: inherit; margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;"
+        >
           <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">
             Week {currentPlan.weekNumber}: {
               curriculum.domains.find((d) => d.id === currentPlan.domainId)
@@ -94,7 +111,7 @@ export default define.page(async function Dashboard(ctx) {
             }
           </h2>
           <p style="color: #4b5563;">{currentPlan.summary}</p>
-        </section>
+        </a>
       )}
 
       {/* Bridge visualization */}
@@ -183,7 +200,10 @@ function DomainCard(
   },
 ) {
   return (
-    <div style={`padding: 0.75rem; border-radius: 0.5rem; border-left: 4px solid ${LEVEL_COLORS[level]}; background: white; border: 1px solid #e5e7eb; border-left: 4px solid ${LEVEL_COLORS[level]};`}>
+    <a
+      href={`/week/${week}`}
+      style={`display: block; text-decoration: none; color: inherit; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; border-left: 4px solid ${LEVEL_COLORS[level]}; background: white;`}
+    >
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem;">
         <span style="font-weight: 600; font-size: 0.875rem;">{name}</span>
         <span style="font-size: 0.75rem; color: #9ca3af;">W{week}</span>
@@ -198,6 +218,6 @@ function DomainCard(
           {fromLabel} → {toLabel}
         </div>
       )}
-    </div>
+    </a>
   );
 }

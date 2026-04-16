@@ -1,34 +1,26 @@
 import { Head } from "fresh/runtime";
-import { define } from "../utils.ts";
-import ScrimPlayer from "../islands/ScrimPlayer.tsx";
-import AnswerForm from "../islands/AnswerForm.tsx";
+import { define } from "../../utils.ts";
+import ScrimPlayer from "../../islands/ScrimPlayer.tsx";
+import AnswerForm from "../../islands/AnswerForm.tsx";
 
-export default define.page(async function TodayView(ctx) {
+export default define.page(async function DayView(ctx) {
   const { repos, config } = ctx.state;
-  const { schedule } = config.learner;
+  const { dayId } = ctx.params;
 
-  const today = await repos.days.getToday(schedule.active_days, schedule.day_plan);
-
-  if (!today) {
-    const dayOfWeek = new Date().getDay();
-    const isRestDay = dayOfWeek === schedule.rest_day;
-
+  const day = await repos.days.getById(dayId);
+  if (!day) {
     return (
       <div style="max-width: 960px; margin: 0 auto; padding: 2rem 1rem;">
-        <Head>
-          <title>Vandaag</title>
-        </Head>
-        <h1 style="font-size: 1.75rem; font-weight: 700; margin-top: 0.5rem;">Vandaag</h1>
+        <Head><title>Dag niet gevonden</title></Head>
+        <h1 style="font-size: 1.75rem; font-weight: 700;">Dag niet gevonden</h1>
         <p style="color: #6b7280; margin-top: 1rem;">
-          {isRestDay
-            ? "Rustdag. De AI bereidt de volgende week voor."
-            : "Nog geen content voor vandaag. De AI genereert dit om " + schedule.generation_time + "."}
+          <a href="/" style="color: #3b82f6;">Terug naar dashboard</a>
         </p>
       </div>
     );
   }
 
-  const questions = await repos.questions.getByDay(today.id);
+  const questions = await repos.questions.getByDay(day.id);
   const questionsWithAnswers = await Promise.all(
     questions.map(async (q) => {
       const answer = await repos.answers.getByQuestion(q.id);
@@ -39,38 +31,40 @@ export default define.page(async function TodayView(ctx) {
     }),
   );
 
-  const domain = config.curriculum.domains.find((d) => d.id === today.domainId);
-
-  // Load interaction log for Scrim replay
-  const interactionLog = today.sceneDocument
-    ? await repos.interactionLogs.get(today.id)
+  const domain = config.curriculum.domains.find((d) => d.id === day.domainId);
+  const interactionLog = day.sceneDocument
+    ? await repos.interactionLogs.get(day.id)
     : null;
 
   return (
     <div style="max-width: 960px; margin: 0 auto; padding: 2rem 1rem;">
       <Head>
-        <title>{today.title}</title>
+        <title>{day.title}</title>
       </Head>
 
+      <a href={`/week/${day.weekNumber}`} style="color: #3b82f6; font-size: 0.875rem;">
+        ← Week {day.weekNumber}
+      </a>
+
       <h1 style="font-size: 1.75rem; font-weight: 700; margin-top: 0.5rem;">
-        {today.title}
+        {day.title}
       </h1>
       <p style="color: #6b7280; margin-bottom: 1.5rem;">
-        {domain?.name ?? today.domainId} — Dag {today.dayOfWeek}
+        {domain?.name ?? day.domainId} — Week {day.weekNumber}, Dag {day.dayOfWeek}
       </p>
 
       {/* Content body */}
-      {today.sceneDocument ? (
+      {day.sceneDocument ? (
         <section style="margin-bottom: 1.5rem;">
           <ScrimPlayer
-            sceneDocument={today.sceneDocument}
+            sceneDocument={day.sceneDocument}
             interactionLog={interactionLog ?? undefined}
-            dayContentId={today.id}
+            dayContentId={day.id}
           />
         </section>
       ) : (
         <section style="padding: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1.5rem; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.75;">
-          {today.body}
+          {day.body}
         </section>
       )}
 
@@ -96,7 +90,6 @@ export default define.page(async function TodayView(ctx) {
                   {question.body}
                 </p>
 
-                {/* Multiple choice options display */}
                 {question.options && answer && (
                   <div style="margin-bottom: 0.5rem;">
                     {question.options.map((opt) => (
@@ -104,52 +97,40 @@ export default define.page(async function TodayView(ctx) {
                         key={opt.key}
                         style={`padding: 0.375rem 0.625rem; font-size: 0.8125rem; ${answer.body === opt.key ? "font-weight: 600;" : "color: #6b7280;"}`}
                       >
-                        {opt.key}. {opt.text}
-                        {answer.body === opt.key ? " ✓" : ""}
+                        {opt.key}. {opt.text}{answer.body === opt.key ? " ✓" : ""}
                       </div>
                     ))}
                   </div>
                 )}
 
                 {answer
-                  ? (
-                    !question.options && (
+                  ? (!question.options && (
                       <div style="padding: 0.75rem; background: #f0fdf4; border-radius: 0.375rem; font-size: 0.875rem; margin-bottom: 0.5rem;">
                         <strong>Antwoord:</strong> {answer.body}
                       </div>
-                    )
-                  )
+                    ))
                   : (
                     <AnswerForm
                       questionId={question.id}
                       questionType={question.type}
-                      options={question.options?.map((o) => ({
-                        key: o.key,
-                        text: o.text,
-                      }))}
+                      options={question.options?.map((o) => ({ key: o.key, text: o.text }))}
                     />
                   )}
 
                 {feedback && (
                   <div
                     style={`padding: 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; margin-top: 0.5rem; background: ${
-                      feedback.score === "correct"
-                        ? "#f0fdf4"
-                        : feedback.score === "partial"
-                        ? "#fef9c3"
-                        : "#fef2f2"
+                      feedback.score === "correct" ? "#f0fdf4"
+                      : feedback.score === "partial" ? "#fef9c3"
+                      : "#fef2f2"
                     };`}
                   >
-                    <strong>
-                      Feedback ({feedback.score}):
-                    </strong>{" "}
+                    <strong>Feedback ({feedback.score}):</strong>{" "}
                     {feedback.explanation}
                     {feedback.improvements.length > 0 && (
                       <ul style="margin-top: 0.5rem; padding-left: 1.25rem;">
                         {feedback.improvements.map((imp, i) => (
-                          <li key={i} style="font-size: 0.8125rem;">
-                            {imp}
-                          </li>
+                          <li key={i} style="font-size: 0.8125rem;">{imp}</li>
                         ))}
                       </ul>
                     )}

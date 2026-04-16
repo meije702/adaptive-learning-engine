@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "adaptive-learning-engine": {
+      "command": "/opt/homebrew/bin/deno",
+      "args": ["run", "-A", "--unstable-kv", "mcp/main.ts"],
+      "cwd": "./src"
+    }
+  }
+}

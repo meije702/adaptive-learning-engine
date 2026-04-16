@@ -98,9 +98,10 @@ export default define.page(async function WeekView(ctx) {
         : (
           <div style="display: flex; flex-direction: column; gap: 0.75rem;">
             {dayDetails.map(({ day, questionCount, answeredCount }) => (
-              <div
+              <a
                 key={day.id}
-                style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: white;"
+                href={`/day/${day.id}`}
+                style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: white; text-decoration: none; color: inherit; transition: border-color 0.15s;"
               >
                 <div>
                   <div style="font-weight: 600; font-size: 0.875rem;">
@@ -115,7 +116,7 @@ export default define.page(async function WeekView(ctx) {
                     ? `${answeredCount}/${questionCount} beantwoord`
                     : "Geen vragen"}
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         )}
