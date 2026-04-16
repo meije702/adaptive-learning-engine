@@ -51,7 +51,12 @@ export interface DayContent {
   domainId: string;
   title: string;
   body: string;
-  /** Scrim SceneDocument JSON. When present, the frontend renders an interactive scene. */
+  /**
+   * A SceneDocumentSnapshot ({ schemaVersion: 1, document }) — see
+   * src/scrim/snapshot.ts. Records written before the wrapper existed
+   * stored the raw SceneDocument directly; readers should call
+   * `unwrapSceneDocument` to handle either shape.
+   */
   sceneDocument?: unknown;
   createdAt: string;
   basedOn?: string[];

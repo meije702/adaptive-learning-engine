@@ -4,6 +4,7 @@ import ScrimPlayer from "../islands/ScrimPlayer.tsx";
 import AnswerForm from "../islands/AnswerForm.tsx";
 import { FeedbackCard } from "../components/FeedbackCard.tsx";
 import { isFeedbackVisible } from "../feedback_visibility.ts";
+import { unwrapSceneDocument } from "../scrim/snapshot.ts";
 
 export default define.page(async function TodayView(ctx) {
   const { repos, config } = ctx.state;
@@ -71,7 +72,8 @@ export default define.page(async function TodayView(ctx) {
   const domain = config.curriculum.domains.find((d) => d.id === today.domainId);
 
   // Load interaction log for Scrim replay
-  const interactionLog = today.sceneDocument
+  const sceneDocument = unwrapSceneDocument(today.sceneDocument);
+  const interactionLog = sceneDocument
     ? await repos.interactionLogs.get(today.id)
     : null;
 
@@ -89,11 +91,11 @@ export default define.page(async function TodayView(ctx) {
       </p>
 
       {/* Content body */}
-      {today.sceneDocument
+      {sceneDocument
         ? (
           <section style="margin-bottom: 1.5rem;">
             <ScrimPlayer
-              sceneDocument={today.sceneDocument}
+              sceneDocument={sceneDocument}
               interactionLog={interactionLog ?? undefined}
               dayContentId={today.id}
             />

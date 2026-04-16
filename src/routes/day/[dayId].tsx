@@ -4,6 +4,7 @@ import ScrimPlayer from "../../islands/ScrimPlayer.tsx";
 import AnswerForm from "../../islands/AnswerForm.tsx";
 import { FeedbackCard } from "../../components/FeedbackCard.tsx";
 import { isFeedbackVisible } from "../../feedback_visibility.ts";
+import { unwrapSceneDocument } from "../../scrim/snapshot.ts";
 
 export default define.page(async function DayView(ctx) {
   const { repos, config } = ctx.state;
@@ -42,7 +43,8 @@ export default define.page(async function DayView(ctx) {
   );
 
   const domain = config.curriculum.domains.find((d) => d.id === day.domainId);
-  const interactionLog = day.sceneDocument
+  const sceneDocument = unwrapSceneDocument(day.sceneDocument);
+  const interactionLog = sceneDocument
     ? await repos.interactionLogs.get(day.id)
     : null;
 
@@ -68,11 +70,11 @@ export default define.page(async function DayView(ctx) {
       </p>
 
       {/* Content body */}
-      {day.sceneDocument
+      {sceneDocument
         ? (
           <section style="margin-bottom: 1.5rem;">
             <ScrimPlayer
-              sceneDocument={day.sceneDocument}
+              sceneDocument={sceneDocument}
               interactionLog={interactionLog ?? undefined}
               dayContentId={day.id}
             />

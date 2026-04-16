@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineTool, txt } from "../define_tool.ts";
 import type { ToolCtx } from "./context.ts";
 import { validateSceneDocument } from "../../scrim/validate.ts";
+import { toSceneDocumentSnapshot } from "../../scrim/snapshot.ts";
 import { recordFeedbackAndProgress } from "../../domain/feedback.ts";
 
 export function register({ server, repos }: ToolCtx): void {
@@ -59,6 +60,9 @@ export function register({ server, repos }: ToolCtx): void {
         await repos.days.create({
           ...args,
           dayOfWeek: args.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6,
+          sceneDocument: args.sceneDocument
+            ? toSceneDocumentSnapshot(args.sceneDocument)
+            : undefined,
         }),
       );
     },

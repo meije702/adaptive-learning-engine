@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTool, txt } from "../define_tool.ts";
 import type { ToolCtx } from "./context.ts";
+import { unwrapSceneDocument } from "../../scrim/snapshot.ts";
 
 export function register({ server, repos, config }: ToolCtx): void {
   defineTool(
@@ -109,7 +110,7 @@ export function register({ server, repos, config }: ToolCtx): void {
       if (!day) return txt({ error: "Day content not found" });
       const interactionLog = await repos.interactionLogs.get(args.dayContentId);
       return txt({
-        sceneDocument: day.sceneDocument ?? null,
+        sceneDocument: unwrapSceneDocument(day.sceneDocument) ?? null,
         interactionLog: interactionLog ?? null,
       });
     },
