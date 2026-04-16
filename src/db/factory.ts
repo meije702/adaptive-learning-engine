@@ -8,6 +8,7 @@ import { KvAnswerRepository } from "./kv/answers.ts";
 import { KvFeedbackRepository } from "./kv/feedback.ts";
 import { KvRetentionRepository } from "./kv/retention.ts";
 import { KvInteractionLogRepository } from "./kv/interaction_logs.ts";
+import { KvCalibrationRepository } from "./kv/calibration.ts";
 import { KvLearnerStateRepository } from "./kv/learner_state.ts";
 import { KvIntakeRepository } from "./kv/intake.ts";
 
@@ -23,6 +24,7 @@ export function createRepositories(
     answers: new KvAnswerRepository(kv),
     feedback: new KvFeedbackRepository(kv),
     retention: new KvRetentionRepository(kv, system.retention),
+    calibration: new KvCalibrationRepository(kv),
     interactionLogs: new KvInteractionLogRepository(kv),
     learnerState: new KvLearnerStateRepository(kv),
     intake: new KvIntakeRepository(kv),

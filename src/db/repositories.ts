@@ -1,5 +1,6 @@
 import type {
   Answer,
+  CalibrationEntry,
   DayContent,
   DayType,
   Feedback,
@@ -132,6 +133,13 @@ export interface RetentionRepository {
   recalculateAfterPause(pauseDays: number): Promise<number>;
 }
 
+export interface CalibrationRepository {
+  getByDomain(domainId: string): Promise<CalibrationEntry[]>;
+  getRecent(limit: number): Promise<CalibrationEntry[]>;
+  create(entry: Omit<CalibrationEntry, "id" | "createdAt">): Promise<CalibrationEntry>;
+  getSummary(): Promise<{ domainId: string; avgDelta: number; count: number }[]>;
+}
+
 export interface InteractionLogRepository {
   get(dayContentId: string): Promise<unknown | null>;
   put(dayContentId: string, log: unknown): Promise<void>;
@@ -161,6 +169,7 @@ export interface Repositories {
   answers: AnswerRepository;
   feedback: FeedbackRepository;
   retention: RetentionRepository;
+  calibration: CalibrationRepository;
   interactionLogs: InteractionLogRepository;
   learnerState: LearnerStateRepository;
   intake: IntakeRepository;

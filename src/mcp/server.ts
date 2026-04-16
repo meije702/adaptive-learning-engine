@@ -213,6 +213,48 @@ ${langRef}`,
     return txt(await repos.weeks.addRetrospective(args.weekNumber, args.retrospective));
   }) as AnyCallback);
 
+  // ── Calibration ───────────────────────────
+
+  server.registerTool("record_self_assessment", {
+    description: "Sla de zelfbeoordeling van de leerling op vóór het tonen van feedback. Vergelijkt predicted vs actual score en berekent calibration delta (-1=overschat, 0=gekalibreerd, 1=onderschat).",
+    inputSchema: z.object({
+      questionId: z.string(),
+      predictedScore: z.enum(["correct", "partial", "incorrect"]),
+    }),
+  }, (async (args: { questionId: string; predictedScore: "correct" | "partial" | "incorrect" }) => {
+    const question = await repos.questions.get(args.questionId);
+    if (!question) return txt({ error: "Question not found" });
+
+    const answer = await repos.answers.getByQuestion(args.questionId);
+    if (!answer) return txt({ error: "No answer submitted yet" });
+
+    const feedback = await repos.feedback.getByAnswer(answer.id);
+    const actualScore = feedback?.score ?? "incorrect";
+
+    const scoreOrder = { incorrect: 0, partial: 1, correct: 2 };
+    const predicted = scoreOrder[args.predictedScore];
+    const actual = scoreOrder[actualScore];
+    const delta = predicted > actual ? -1 : predicted < actual ? 1 : 0;
+
+    const entry = await repos.calibration.create({
+      questionId: args.questionId,
+      domainId: question.domainId,
+      predictedScore: args.predictedScore,
+      actualScore,
+      delta: delta as -1 | 0 | 1,
+    });
+
+    return txt(entry);
+  }) as AnyCallback);
+
+  server.registerTool("get_calibration_summary", {
+    description: "Haal calibratiepatronen op per domein. Toont gemiddelde delta en aantal metingen. Gebruik dit om de leerling te helpen hun zelfkennis te verbeteren.",
+    inputSchema: z.object({}),
+  }, (async () => {
+    const summary = await repos.calibration.getSummary();
+    return txt(summary);
+  }) as AnyCallback);
+
   // ── Wellbeing ─────────────────────────────
 
   server.registerTool("set_wellbeing_status", {

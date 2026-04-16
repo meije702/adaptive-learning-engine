@@ -106,6 +106,19 @@ export interface RetentionSchedule {
   lastResult: "correct" | "partial" | "incorrect";
 }
 
+// ── Calibration (self-assessment vs actual performance) ──
+
+export interface CalibrationEntry {
+  id: string;
+  questionId: string;
+  domainId: string;
+  predictedScore: "correct" | "partial" | "incorrect";
+  actualScore: "correct" | "partial" | "incorrect";
+  /** -1 = overestimated, 0 = calibrated, 1 = underestimated */
+  delta: -1 | 0 | 1;
+  createdAt: string;
+}
+
 // ── Learner runtime state (mutable overlay on static YAML config) ──
 
 export interface LearnerState {
