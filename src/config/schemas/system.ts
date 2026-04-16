@@ -21,7 +21,10 @@ export const SystemConfigSchema = z.object({
   }),
 
   mcp: z.object({
-    transport: z.enum(["sse", "stdio"]),
+    // Only "stdio" is implemented (src/mcp/main.ts calls startMcpStdio).
+    // SSE was specified in early designs but never shipped — keeping the
+    // schema honest prevents config/reality drift.
+    transport: z.literal("stdio"),
     path: z.string(),
   }),
 

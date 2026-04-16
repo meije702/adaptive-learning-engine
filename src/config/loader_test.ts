@@ -21,7 +21,7 @@ describe("loadConfig", () => {
       assertEquals(config.system.auth.type, "bearer");
       assertEquals(config.system.storage.type, "deno-kv");
       assertEquals(config.system.ai.provider, "anthropic");
-      assertEquals(config.system.mcp.transport, "sse");
+      assertEquals(config.system.mcp.transport, "stdio");
       assertEquals(config.system.retention.multiplier_correct, 2.5);
       assertEquals(config.system.content.max_length.theory, 600);
       assertEquals(config.system.export.format, "json");

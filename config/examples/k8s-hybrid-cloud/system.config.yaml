@@ -23,7 +23,7 @@ ai:
     {/if}
 
 mcp:
-  transport: "sse"
+  transport: "stdio"
   path: "/mcp"
 
 retention:
