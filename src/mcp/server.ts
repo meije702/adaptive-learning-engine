@@ -213,6 +213,40 @@ ${langRef}`,
     return txt(await repos.weeks.addRetrospective(args.weekNumber, args.retrospective));
   }) as AnyCallback);
 
+  // ── Wellbeing ─────────────────────────────
+
+  server.registerTool("set_wellbeing_status", {
+    description: "Update de wellbeing status. Bij 'paused': stop alle contentgeneratie. Bij 'returning': start soft re-entry. Bij 'active': normaal leertraject.",
+    inputSchema: z.object({
+      status: z.enum(["active", "paused", "returning"]),
+    }),
+  }, (async (args: { status: "active" | "paused" | "returning" }) => {
+    const current = await repos.learnerState.get();
+    const now = new Date().toISOString();
+
+    const updated = {
+      intake: current?.intake ?? { completed: false },
+      wellbeing: {
+        status: args.status,
+        pausedAt: args.status === "paused" ? now : current?.wellbeing?.pausedAt,
+        returnedAt: args.status === "returning" || args.status === "active" ? now : current?.wellbeing?.returnedAt,
+      },
+    };
+
+    await repos.learnerState.put(updated);
+    return txt(updated.wellbeing);
+  }) as AnyCallback);
+
+  server.registerTool("recalculate_retention_after_pause", {
+    description: "Herbereken alle retentie-intervallen na een pauze. Intervallen verval tijdens afwezigheid. Draai dit na set_wellbeing_status('returning').",
+    inputSchema: z.object({
+      pauseDays: z.number().min(0),
+    }),
+  }, (async (args: { pauseDays: number }) => {
+    const count = await repos.retention.recalculateAfterPause(args.pauseDays);
+    return txt({ recalculated: count, pauseDays: args.pauseDays });
+  }) as AnyCallback);
+
   // ── Gap Analysis ──────────────────────────
 
   server.registerTool("get_gap_analysis", {

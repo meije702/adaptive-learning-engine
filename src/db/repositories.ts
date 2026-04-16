@@ -129,6 +129,7 @@ export interface RetentionRepository {
     domainId: string,
     result: "correct" | "partial" | "incorrect",
   ): Promise<RetentionSchedule>;
+  recalculateAfterPause(pauseDays: number): Promise<number>;
 }
 
 export interface InteractionLogRepository {

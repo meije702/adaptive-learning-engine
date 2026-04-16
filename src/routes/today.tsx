@@ -8,6 +8,20 @@ export default define.page(async function TodayView(ctx) {
   const { repos, config } = ctx.state;
   const { schedule } = config.learner;
 
+  // Respect pause: show nothing when paused
+  const learnerState = await repos.learnerState.get();
+  if (learnerState?.wellbeing?.status === "paused") {
+    return (
+      <div style="max-width: 960px; margin: 0 auto; padding: 2rem 1rem;">
+        <Head><title>Vandaag</title></Head>
+        <h1 style="font-size: 1.75rem; font-weight: 700; margin-top: 0.5rem;">Vandaag</h1>
+        <div style="padding: 1.5rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 0.5rem; margin-top: 1rem; color: #0c4a6e;">
+          <strong>Leertraject gepauzeerd.</strong> Er is geen content gepland. Neem de tijd die je nodig hebt.
+        </div>
+      </div>
+    );
+  }
+
   const today = await repos.days.getToday(schedule.active_days, schedule.day_plan);
 
   if (!today) {

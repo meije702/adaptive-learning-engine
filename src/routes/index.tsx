@@ -73,6 +73,20 @@ export default define.page(async function Dashboard(ctx) {
         </a>
       )}
 
+      {/* Wellbeing banners */}
+      {learnerState?.wellbeing?.status === "paused" && (
+        <div style="padding: 1rem; margin-bottom: 1.5rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 0.5rem; color: #0c4a6e;">
+          <strong>Leertraject gepauzeerd</strong> — Neem de tijd die je nodig hebt.
+          Wanneer je klaar bent om terug te komen, laat het de AI coach weten.
+        </div>
+      )}
+      {learnerState?.wellbeing?.status === "returning" && (
+        <div style="padding: 1rem; margin-bottom: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; color: #166534;">
+          <strong>Welkom terug</strong> — We beginnen rustig. De AI coach helpt
+          je om te herijken waar je gebleven was.
+        </div>
+      )}
+
       {/* Today CTA */}
       <a
         href="/today"

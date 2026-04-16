@@ -108,4 +108,37 @@ export class KvRetentionRepository implements RetentionRepository {
     await this.kv.set(["retention", domainId], updated);
     return updated;
   }
+
+  /**
+   * Recalculate all retention schedules after a pause.
+   * Intervals decay during absence. If pause > max_interval, reset to initial.
+   * Returns the number of schedules updated.
+   */
+  async recalculateAfterPause(pauseDays: number): Promise<number> {
+    const all = await this.getAll();
+    let updated = 0;
+
+    for (const schedule of all) {
+      // If pause exceeded the interval, the learner has "forgotten" — reset
+      const newInterval = pauseDays >= schedule.interval
+        ? this.config.initialIntervalDays
+        : Math.max(
+          this.config.initialIntervalDays,
+          Math.round(schedule.interval / (1 + pauseDays / schedule.interval)),
+        );
+
+      const nextDue = new Date();
+      const recalculated: RetentionSchedule = {
+        ...schedule,
+        interval: newInterval,
+        nextDue: nextDue.toISOString(),
+        streak: pauseDays >= schedule.interval ? 0 : schedule.streak,
+      };
+
+      await this.kv.set(["retention", schedule.domainId], recalculated);
+      updated++;
+    }
+
+    return updated;
+  }
 }
