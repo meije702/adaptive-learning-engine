@@ -155,14 +155,18 @@ ${langRef}`,
   }) as AnyCallback);
 
   server.registerTool("create_feedback", {
-    description: "Schrijf feedback op een antwoord en update optioneel het competentieniveau",
+    description: "Schrijf feedback op een antwoord. Gebruik de drie-componentenstructuur: feedUp (waar gaat de leerling naartoe), feedBack (hoe deed hij het), feedForward (wat moet hij nu doen). Kies het hoogste feedbackLevel dat van toepassing is: task < process < self_regulation.",
     inputSchema: z.object({
       answerId: z.string(), questionId: z.string(),
       score: z.enum(["correct", "partial", "incorrect"]),
       explanation: z.string(), suggestedLevel: z.number().min(0).max(5),
       applyLevel: z.boolean(), improvements: z.array(z.string()),
+      feedUp: z.string().optional(),
+      feedBack: z.string().optional(),
+      feedForward: z.string().optional(),
+      feedbackLevel: z.enum(["task", "process", "self_regulation"]).optional(),
     }),
-  }, (async (args: { answerId: string; questionId: string; score: "correct" | "partial" | "incorrect"; explanation: string; suggestedLevel: number; applyLevel: boolean; improvements: string[] }) => {
+  }, (async (args: { answerId: string; questionId: string; score: "correct" | "partial" | "incorrect"; explanation: string; suggestedLevel: number; applyLevel: boolean; improvements: string[]; feedUp?: string; feedBack?: string; feedForward?: string; feedbackLevel?: "task" | "process" | "self_regulation" }) => {
     const feedback = await repos.feedback.create(args);
     if (args.applyLevel) {
       const question = await repos.questions.get(args.questionId);

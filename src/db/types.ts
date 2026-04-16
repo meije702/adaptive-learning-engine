@@ -76,6 +76,8 @@ export interface Answer {
   timeSpentSeconds?: number;
 }
 
+export type FeedbackLevel = "task" | "process" | "self_regulation";
+
 export interface Feedback {
   id: string;
   answerId: string;
@@ -85,6 +87,14 @@ export interface Feedback {
   suggestedLevel: number;
   levelApplied: boolean;
   improvements: string[];
+  /** Where is the learner heading? Connects to their goal. */
+  feedUp?: string;
+  /** How did they do? Specific, evidence-based. */
+  feedBack?: string;
+  /** What should they do next? Concrete and actionable. */
+  feedForward?: string;
+  /** Target the highest impactful level: task < process < self_regulation. */
+  feedbackLevel?: FeedbackLevel;
   createdAt: string;
 }
 

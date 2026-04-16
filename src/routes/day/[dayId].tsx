@@ -2,6 +2,7 @@ import { Head } from "fresh/runtime";
 import { define } from "../../utils.ts";
 import ScrimPlayer from "../../islands/ScrimPlayer.tsx";
 import AnswerForm from "../../islands/AnswerForm.tsx";
+import { FeedbackCard } from "../../components/FeedbackCard.tsx";
 
 export default define.page(async function DayView(ctx) {
   const { repos, config } = ctx.state;
@@ -117,25 +118,7 @@ export default define.page(async function DayView(ctx) {
                     />
                   )}
 
-                {feedback && (
-                  <div
-                    style={`padding: 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; margin-top: 0.5rem; background: ${
-                      feedback.score === "correct" ? "#f0fdf4"
-                      : feedback.score === "partial" ? "#fef9c3"
-                      : "#fef2f2"
-                    };`}
-                  >
-                    <strong>Feedback ({feedback.score}):</strong>{" "}
-                    {feedback.explanation}
-                    {feedback.improvements.length > 0 && (
-                      <ul style="margin-top: 0.5rem; padding-left: 1.25rem;">
-                        {feedback.improvements.map((imp, i) => (
-                          <li key={i} style="font-size: 0.8125rem;">{imp}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
+                {feedback && <FeedbackCard feedback={feedback} />}
               </div>
             ))}
           </div>

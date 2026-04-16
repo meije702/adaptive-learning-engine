@@ -67,6 +67,10 @@ export interface CreateFeedback {
   suggestedLevel: number;
   applyLevel: boolean;
   improvements: string[];
+  feedUp?: string;
+  feedBack?: string;
+  feedForward?: string;
+  feedbackLevel?: "task" | "process" | "self_regulation";
 }
 
 // --- Repository interfaces ---
