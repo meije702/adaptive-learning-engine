@@ -3,6 +3,7 @@ import { defineTool, txt } from "../define_tool.ts";
 import type { ToolCtx } from "./context.ts";
 import { computeGapAnalysis } from "../../analysis/gap.ts";
 import { unwrapGapAnalysisSnapshot } from "../../analysis/types.ts";
+import { NotFoundError } from "../../domain/errors.ts";
 
 export function register({ server, repos, config }: ToolCtx): void {
   defineTool(
@@ -20,7 +21,10 @@ export function register({ server, repos, config }: ToolCtx): void {
         const phaseGap = result.phaseGaps.find((p) =>
           p.phaseId === args.phaseId
         );
-        return txt(phaseGap ?? { error: `Phase ${args.phaseId} not found` });
+        if (!phaseGap) {
+          throw new NotFoundError(`Phase ${args.phaseId} not found`);
+        }
+        return txt(phaseGap);
       }
       return txt(result);
     },

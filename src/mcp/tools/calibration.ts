@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineTool, txt } from "../define_tool.ts";
 import type { ToolCtx } from "./context.ts";
 import { computeCalibrationDelta } from "../../domain/calibration.ts";
+import { NotFoundError, ValidationError } from "../../domain/errors.ts";
 
 export function register({ server, repos }: ToolCtx): void {
   defineTool(
@@ -17,17 +18,16 @@ export function register({ server, repos }: ToolCtx): void {
     },
     async (args) => {
       const question = await repos.questions.get(args.questionId);
-      if (!question) return txt({ error: "Question not found" });
+      if (!question) throw new NotFoundError("Question not found");
 
       const answer = await repos.answers.getByQuestion(args.questionId);
-      if (!answer) return txt({ error: "No answer submitted yet" });
+      if (!answer) throw new NotFoundError("No answer submitted yet");
 
       const feedback = await repos.feedback.getByAnswer(answer.id);
       if (!feedback) {
-        return txt({
-          error:
-            "Feedback has not been created yet. Calibration requires an actual score.",
-        });
+        throw new ValidationError(
+          "Feedback has not been created yet. Calibration requires an actual score.",
+        );
       }
 
       const actualScore = feedback.score;

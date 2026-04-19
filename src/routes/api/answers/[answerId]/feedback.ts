@@ -22,7 +22,14 @@ export const handler = define.handlers({
     const body = await parseJsonBody<Omit<CreateFeedback, "answerId">>(
       ctx.req,
     );
-    if (!body || !body.questionId || !body.score || !body.explanation) {
+    const hasRequiredFields = body &&
+      body.questionId &&
+      body.score &&
+      body.explanation &&
+      Number.isFinite(body.suggestedLevel) &&
+      typeof body.levelApplied === "boolean" &&
+      Array.isArray(body.improvements);
+    if (!hasRequiredFields) {
       return badRequest(
         "Body must include questionId, score, explanation, suggestedLevel, levelApplied, and improvements",
         `/api/answers/${answerId}/feedback`,

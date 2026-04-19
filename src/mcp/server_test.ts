@@ -1,6 +1,7 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 
+import { toGapAnalysisSnapshot } from "@/analysis/types.ts";
 import { Client, InMemoryTransport } from "@/mcp/sdk_compat.js";
 import { createMcpServer } from "@/mcp/server.ts";
 import {
@@ -186,6 +187,60 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       assertExists(data.sceneDocument);
       assertEquals(data.sceneDocument.scene.name, "test");
     });
+
+    it("get_scene_document returns not_found code for a missing day", async () => {
+      const result = await client.callTool({
+        name: "get_scene_document",
+        arguments: { dayContentId: "missing-day" },
+      });
+      const data = parse(result);
+
+      assertEquals(data.error, "Day content not found");
+      assertEquals(data.code, "not_found");
+    });
+
+    it("get_week_overview unwraps stored sceneDocuments", async () => {
+      const scene = {
+        protocolVersion: "1.0",
+        scene: { name: "week-scene", schemaVersion: "1" },
+        steps: [{
+          id: "s1",
+          kind: "show",
+          node: { type: "text", properties: { content: "Hello" } },
+        }],
+      };
+
+      const createResult = await client.callTool({
+        name: "create_day_content",
+        arguments: {
+          weekNumber: 3,
+          dayOfWeek: 1,
+          type: "theory",
+          domainId: "domain-a",
+          title: "Theory Day",
+          body: "Summary text",
+          sceneDocument: scene,
+        },
+      });
+      const created = parse(createResult);
+
+      const stored = await repos.days.getById(created.id);
+      assertExists(stored);
+      assertEquals(
+        (stored.sceneDocument as { schemaVersion?: number }).schemaVersion,
+        1,
+      );
+
+      const result = await client.callTool({
+        name: "get_week_overview",
+        arguments: { weekNumber: 3 },
+      });
+      const data = parse(result);
+
+      assertEquals(data.days.length, 1);
+      assertEquals(data.days[0].sceneDocument.scene.name, "week-scene");
+      assertEquals(data.days[0].sceneDocument.schemaVersion, undefined);
+    });
   });
 
   // ── Generate ───────────────────────────────
@@ -234,10 +289,16 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       });
       const data = parse(result);
       assertExists(data.id);
+      assertEquals(data.sceneDocument.scene.name, "test");
+      assertEquals(data.sceneDocument.schemaVersion, undefined);
 
       const fetched = await repos.days.getById(data.id);
       assertExists(fetched);
       assertExists(fetched.sceneDocument);
+      assertEquals(
+        (fetched.sceneDocument as { schemaVersion?: number }).schemaVersion,
+        1,
+      );
     });
 
     it("create_day_content with invalid sceneDocument returns validation errors", async () => {
@@ -557,16 +618,46 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       assertEquals(data.delta, 1);
     });
 
-    it("record_self_assessment returns error for missing question", async () => {
+    it("record_self_assessment returns not_found for missing question", async () => {
       const result = await client.callTool({
         name: "record_self_assessment",
         arguments: { questionId: "nonexistent", predictedScore: "correct" },
       });
       const data = parse(result);
       assertEquals(data.error, "Question not found");
+      assertEquals(data.code, "not_found");
     });
 
-    it("record_self_assessment returns error when feedback not yet created", async () => {
+    it("record_self_assessment returns not_found when no answer exists", async () => {
+      const day = await repos.days.create({
+        weekNumber: 1,
+        dayOfWeek: 1,
+        type: "theory",
+        domainId: "domain-a",
+        title: "D",
+        body: "B",
+      });
+      const [question] = await repos.questions.create([{
+        dayContentId: day.id,
+        domainId: "domain-a",
+        sequence: 1,
+        type: "open",
+        body: "Q?",
+        maxLevel: 3,
+        deadline: new Date(Date.now() + 86400000).toISOString(),
+      }]);
+
+      const result = await client.callTool({
+        name: "record_self_assessment",
+        arguments: { questionId: question.id, predictedScore: "correct" },
+      });
+      const data = parse(result);
+
+      assertEquals(data.error, "No answer submitted yet");
+      assertEquals(data.code, "not_found");
+    });
+
+    it("record_self_assessment returns validation code when feedback is missing", async () => {
       const day = await repos.days.create({
         weekNumber: 1,
         dayOfWeek: 1,
@@ -592,7 +683,11 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
         arguments: { questionId: question.id, predictedScore: "correct" },
       });
       const data = parse(result);
-      assertExists(data.error);
+      assertEquals(
+        data.error,
+        "Feedback has not been created yet. Calibration requires an actual score.",
+      );
+      assertEquals(data.code, "validation");
     });
 
     it("get_calibration_summary returns summary", async () => {
@@ -673,6 +768,38 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       assertEquals(data2.session.id, sessionId);
     });
 
+    it("start_intake unwraps persisted gapAnalysis snapshots", async () => {
+      await repos.intake.putSession(buildIntakeSession({
+        status: "gap_analysis",
+        gapAnalysis: toGapAnalysisSnapshot(buildGapAnalysis({
+          estimatedWeeks: 6,
+        })),
+      }));
+
+      const result = await client.callTool({
+        name: "start_intake",
+        arguments: {},
+      });
+      const data = parse(result);
+
+      assertEquals(data.session.gapAnalysis.estimatedWeeks, 6);
+      assertEquals(data.session.gapAnalysis.schemaVersion, undefined);
+    });
+
+    it("send_intake_message returns validation code when no session exists", async () => {
+      const result = await client.callTool({
+        name: "send_intake_message",
+        arguments: {
+          content: "Tell me about yourself",
+          phase: "profile_validation",
+        },
+      });
+      const data = parse(result);
+
+      assertEquals(data.error, "No intake session. Call start_intake first.");
+      assertEquals(data.code, "validation");
+    });
+
     it("send_intake_message stores message and advances phase", async () => {
       await client.callTool({ name: "start_intake", arguments: {} });
 
@@ -748,6 +875,15 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       const data = parse(result);
       assertEquals(data.status, "completed");
       assertExists(data.completedAt);
+      assertEquals(data.gapAnalysis.estimatedWeeks, 8);
+      assertEquals(data.gapAnalysis.schemaVersion, undefined);
+
+      const storedSession = await repos.intake.getSession();
+      assertExists(storedSession);
+      assertEquals(
+        (storedSession.gapAnalysis as { schemaVersion?: number }).schemaVersion,
+        1,
+      );
 
       // Phase 1 domains (domain-a, domain-b) should be level 2
       const progA = await repos.progress.get("domain-a");
@@ -763,6 +899,20 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       const state = await repos.learnerState.get();
       assertExists(state);
       assertEquals(state.intake.completed, true);
+    });
+
+    it("complete_intake returns validation code when no session exists", async () => {
+      const result = await client.callTool({
+        name: "complete_intake",
+        arguments: {
+          gapAnalysis: buildGapAnalysis({ estimatedWeeks: 8 }),
+          baselineResults: [],
+        },
+      });
+      const data = parse(result);
+
+      assertEquals(data.error, "No intake session. Call start_intake first.");
+      assertEquals(data.code, "validation");
     });
   });
 
@@ -797,6 +947,17 @@ describe("MCP tool logic — Layer 2 integration (InMemoryTransport)", () => {
       });
       const data = parse(result);
       assertEquals(data.phaseId, 1);
+    });
+
+    it("get_gap_analysis returns not_found code for an unknown phase", async () => {
+      const result = await client.callTool({
+        name: "get_gap_analysis",
+        arguments: { phaseId: 999 },
+      });
+      const data = parse(result);
+
+      assertEquals(data.error, "Phase 999 not found");
+      assertEquals(data.code, "not_found");
     });
 
     it("recalculate_gaps compares vs intake", async () => {

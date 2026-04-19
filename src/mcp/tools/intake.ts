@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { defineTool, txt } from "../define_tool.ts";
 import type { ToolCtx } from "./context.ts";
-import { toGapAnalysisSnapshot } from "../../analysis/types.ts";
+import {
+  toGapAnalysisSnapshot,
+  unwrapGapAnalysisSnapshot,
+} from "../../analysis/types.ts";
+import { ValidationError } from "../../domain/errors.ts";
 
 export function register({ server, repos, config }: ToolCtx): void {
   defineTool(
@@ -24,7 +28,10 @@ export function register({ server, repos, config }: ToolCtx): void {
         await repos.intake.putSession(session);
       }
       return txt({
-        session,
+        session: {
+          ...session,
+          gapAnalysis: unwrapGapAnalysisSnapshot(session.gapAnalysis),
+        },
         learner: {
           profile: config.learner.profile,
           background: config.learner.background,
@@ -59,7 +66,9 @@ export function register({ server, repos, config }: ToolCtx): void {
     async (args) => {
       const session = await repos.intake.getSession();
       if (!session) {
-        return txt({ error: "No intake session. Call start_intake first." });
+        throw new ValidationError(
+          "No intake session. Call start_intake first.",
+        );
       }
 
       if (args.phase && args.phase !== session.status) {
@@ -115,7 +124,9 @@ export function register({ server, repos, config }: ToolCtx): void {
     async (args) => {
       const session = await repos.intake.getSession();
       if (!session) {
-        return txt({ error: "No intake session. Call start_intake first." });
+        throw new ValidationError(
+          "No intake session. Call start_intake first.",
+        );
       }
 
       session.status = "completed";
@@ -148,7 +159,10 @@ export function register({ server, repos, config }: ToolCtx): void {
         phase: "completed",
       });
 
-      return txt(session);
+      return txt({
+        ...session,
+        gapAnalysis: unwrapGapAnalysisSnapshot(session.gapAnalysis),
+      });
     },
   );
 }

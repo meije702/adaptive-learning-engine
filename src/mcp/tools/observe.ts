@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineTool, txt } from "../define_tool.ts";
 import type { ToolCtx } from "./context.ts";
 import { unwrapSceneDocument } from "../../scrim/snapshot.ts";
+import { NotFoundError } from "../../domain/errors.ts";
 
 export function register({ server, repos, config }: ToolCtx): void {
   defineTool(
@@ -82,7 +83,10 @@ export function register({ server, repos, config }: ToolCtx): void {
     },
     async (args) => {
       const plan = await repos.weeks.get(args.weekNumber);
-      const days = await repos.days.getByWeek(args.weekNumber);
+      const days = (await repos.days.getByWeek(args.weekNumber)).map((day) => ({
+        ...day,
+        sceneDocument: unwrapSceneDocument(day.sceneDocument),
+      }));
       return txt({ plan, days });
     },
   );
@@ -107,7 +111,7 @@ export function register({ server, repos, config }: ToolCtx): void {
     },
     async (args) => {
       const day = await repos.days.getById(args.dayContentId);
-      if (!day) return txt({ error: "Day content not found" });
+      if (!day) throw new NotFoundError("Day content not found");
       const interactionLog = await repos.interactionLogs.get(args.dayContentId);
       return txt({
         sceneDocument: unwrapSceneDocument(day.sceneDocument) ?? null,

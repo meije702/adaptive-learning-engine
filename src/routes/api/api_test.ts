@@ -468,11 +468,7 @@ describe("API Route Handlers — Layer 2", () => {
   // ── POST /api/answers/:answerId/feedback — progress update ──
 
   describe("POST /api/answers/:answerId/feedback", () => {
-    it("updates progress on the correct domainId when levelApplied is true", async () => {
-      const { handler } = await import(
-        "@/routes/api/answers/[answerId]/feedback.ts"
-      );
-
+    async function createFeedbackTarget() {
       const day = await repos.days.create({
         weekNumber: 1,
         dayOfWeek: 1,
@@ -495,6 +491,16 @@ describe("API Route Handlers — Layer 2", () => {
         body: "ans",
       });
 
+      return { question, answer };
+    }
+
+    it("updates progress on the correct domainId when levelApplied is true", async () => {
+      const { handler } = await import(
+        "@/routes/api/answers/[answerId]/feedback.ts"
+      );
+
+      const { question, answer } = await createFeedbackTarget();
+
       const ctx = mockCtx(
         postJson(`/api/answers/${answer.id}/feedback`, {
           questionId: question.id,
@@ -516,6 +522,51 @@ describe("API Route Handlers — Layer 2", () => {
       // Verify no garbage progress entry was created under the questionId
       const garbage = await repos.progress.get(question.id);
       assertEquals(garbage, null);
+    });
+
+    it("rejects when levelApplied is missing", async () => {
+      const { handler } = await import(
+        "@/routes/api/answers/[answerId]/feedback.ts"
+      );
+
+      const { question, answer } = await createFeedbackTarget();
+
+      const ctx = mockCtx(
+        postJson(`/api/answers/${answer.id}/feedback`, {
+          questionId: question.id,
+          score: "correct",
+          explanation: "Good",
+          suggestedLevel: 4,
+          improvements: [],
+        }),
+        { params: { answerId: answer.id } },
+      );
+      const response = await handler.POST!(ctx);
+
+      assertEquals(response.status, 400);
+    });
+
+    it("rejects legacy applyLevel-only payloads", async () => {
+      const { handler } = await import(
+        "@/routes/api/answers/[answerId]/feedback.ts"
+      );
+
+      const { question, answer } = await createFeedbackTarget();
+
+      const ctx = mockCtx(
+        postJson(`/api/answers/${answer.id}/feedback`, {
+          questionId: question.id,
+          score: "correct",
+          explanation: "Good",
+          suggestedLevel: 4,
+          applyLevel: true,
+          improvements: [],
+        }),
+        { params: { answerId: answer.id } },
+      );
+      const response = await handler.POST!(ctx);
+
+      assertEquals(response.status, 400);
     });
   });
 
