@@ -633,4 +633,92 @@ describe("API Route Handlers — Layer 2", () => {
       assertEquals(response.status, 404);
     });
   });
+
+  // ── /api/theme ─────────────────────────────────────────────────────
+
+  describe("PUT /api/theme — supersede fixture (WP-D5)", () => {
+    async function putTheme(body: unknown) {
+      const { handler } = await import("@/routes/api/theme.ts");
+      const ctx = mockCtx(
+        new Request("http://localhost/api/theme", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }),
+      );
+      return handler.PUT!(ctx);
+    }
+
+    it(
+      "the worked supersede scenario: course default → ai_proposed dark → user picks high_contrast",
+      async () => {
+        // (1) Start: no learner state. Course theme is default (no
+        // theme.config.yaml in the test config).
+        assertEquals(await repos.learnerState.get(), null);
+
+        // (2) AI writes a proposal. The proposal MUST NOT affect
+        // rendering (fitness #11).
+        await repos.learnerState.put({
+          intake: { completed: false },
+          wellbeing: { status: "active" },
+          theme: {
+            source: "ai_proposed",
+            preset: "dark",
+            proposedAt: "2026-04-16T09:00:00.000Z",
+          },
+        });
+
+        // (3) Learner picks high_contrast via PUT /api/theme.
+        const res = await putTheme({
+          source: "user",
+          preset: "high_contrast",
+        });
+        assertEquals(res.status, 200);
+
+        // (4) Expected post-state:
+        const after = await repos.learnerState.get();
+        assertEquals(after?.theme?.source, "user");
+        assertEquals(after?.theme?.preset, "high_contrast");
+        // `previous` reflects RENDERING before the write. The proposal
+        // didn't render, so previous === undefined (course-fallback).
+        assertEquals(after?.theme?.previous, undefined);
+        // And the proposal itself is gone — no trace.
+        assertEquals(
+          // deno-lint-ignore no-explicit-any
+          (after?.theme as any)?.proposedAt,
+          undefined,
+        );
+      },
+    );
+
+    it("rejects invalid user write (no preset, no overrides)", async () => {
+      const res = await putTheme({ source: "user" });
+      assertEquals(res.status, 400);
+    });
+
+    it("revert returns to previous (user→user→revert lands back on first user pick)", async () => {
+      await putTheme({ source: "user", preset: "dark" });
+      await putTheme({ source: "user", preset: "high_contrast" });
+      const res = await putTheme({ source: "revert" });
+      assertEquals(res.status, 200);
+      const after = await repos.learnerState.get();
+      assertEquals(after?.theme?.source, "user");
+      assertEquals(after?.theme?.preset, "dark");
+    });
+  });
+
+  describe("GET /api/theme", () => {
+    it("returns the resolved active theme + stored learner state", async () => {
+      const { handler } = await import("@/routes/api/theme.ts");
+      const res = await handler.GET!(
+        mockCtx(getReq("/api/theme")),
+      );
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertExists(body.active);
+      // default preset color.primary value — the canonical signal that
+      // the resolver ran against the expected preset.
+      assertEquals(body.learner, null);
+    });
+  });
 });

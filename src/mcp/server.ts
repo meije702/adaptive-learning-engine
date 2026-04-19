@@ -11,6 +11,7 @@ import * as calibration from "./tools/calibration.ts";
 import * as wellbeing from "./tools/wellbeing.ts";
 import * as gap from "./tools/gap.ts";
 import * as intake from "./tools/intake.ts";
+import * as theme from "./tools/theme.ts";
 
 /**
  * Build the MCP server for the Adaptive Learning Engine.
@@ -67,6 +68,7 @@ ${langRef}`,
   wellbeing.register(ctx);
   gap.register(ctx);
   intake.register(ctx);
+  theme.register(ctx);
 
   return server;
 }

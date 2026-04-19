@@ -3,14 +3,23 @@ import { themeToInlineStyle } from "../design/themes/apply_to_root.ts";
 import { mergeTheme } from "../design/themes/merge.ts";
 import { presetFor } from "../design/themes/presets.ts";
 import { aliasesCss } from "../design/tokens/aliases.ts";
+import { resolveLearnerTheme } from "../domain/learner_theme.ts";
+import ThemeSwitcher from "../islands/ThemeSwitcher.tsx";
 
-export default define.page(function App({ Component, url, state }) {
+export default define.page(async function App({ Component, url, state }) {
   const path = url.pathname;
-  // Course-level theme composition: preset ← theme.config.yaml overrides.
-  // Learner-scoped overlay will be added in WP-D5.
+  // Composition rule (see docs/design-system.md § Resolution order):
+  //   base_preset = learner.preset ?? course.preset ?? "default"
+  //   stack       = [course.overrides ?? {}, learner.overrides ?? {}]
+  //   theme       = mergeTheme(preset, ...stack)
+  // learnerOverlay is `undefined` when source==="ai_proposed" (fitness #11).
+  const learnerState = await state.repos.learnerState.get();
+  const learnerOverlay = resolveLearnerTheme(learnerState);
+  const basePresetId = learnerOverlay?.preset ?? state.config.theme.preset;
   const composedTheme = mergeTheme(
-    presetFor(state.config.theme.preset),
+    presetFor(basePresetId),
     state.config.theme.overrides ?? {},
+    learnerOverlay?.overrides ?? {},
   );
   const rootStyle = themeToInlineStyle(composedTheme);
 
@@ -57,6 +66,9 @@ export default define.page(function App({ Component, url, state }) {
             >
               Retentie
             </a>
+            <div style="margin-left: auto;">
+              <ThemeSwitcher />
+            </div>
           </div>
         </nav>
         <Component />

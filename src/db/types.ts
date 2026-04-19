@@ -10,6 +10,13 @@ export type {
 } from "../analysis/types.ts";
 import type { GapAnalysis, GapAnalysisSnapshot } from "../analysis/types.ts";
 
+// Theme shapes live in design/. Re-exported here for ergonomic imports
+// from the db layer's consumers.
+import type { ThemePresetId } from "../config/schemas/theme.ts";
+import type { Theme } from "../design/themes/types.ts";
+import type { DeepPartial } from "../design/themes/merge.ts";
+export type { ThemePresetId } from "../config/schemas/theme.ts";
+
 export interface ProgressEntry {
   level: number;
   assessedAt: string;
@@ -140,6 +147,39 @@ export interface CalibrationEntry {
 
 // ── Learner runtime state (mutable overlay on static YAML config) ──
 
+/**
+ * Learner-scoped theme state with provenance (see
+ * docs/design-system.md § Layer 4).
+ *
+ * Absence of `LearnerState.theme` means "no learner override" — render
+ * falls through to the course theme. `source === "ai_proposed"` is a
+ * data-only state that never reaches rendering.
+ */
+export type LearnerThemeSource = "user" | "ai_proposed" | "ai_accepted";
+
+export interface LearnerTheme {
+  source: LearnerThemeSource;
+  preset?: ThemePresetId;
+  overrides?: DeepPartial<Theme>;
+  /** ISO timestamp. Required when source ∈ {ai_proposed, ai_accepted}. */
+  proposedAt?: string;
+  /** ISO timestamp. Required when source === "ai_accepted". */
+  acceptedAt?: string;
+  /** What was rendering before this write. One level only — enforced by type. */
+  previous?: PreviousTheme;
+}
+
+/**
+ * A snapshot of what was being rendered before a theme change landed.
+ * Structurally has NO `previous` field: the type system forbids a chain,
+ * so revert is always a single step.
+ */
+export interface PreviousTheme {
+  source: "user" | "ai_accepted";
+  preset?: ThemePresetId;
+  overrides?: DeepPartial<Theme>;
+}
+
 export interface LearnerState {
   intake: {
     completed: boolean;
@@ -150,6 +190,8 @@ export interface LearnerState {
     pausedAt?: string;
     returnedAt?: string;
   };
+  /** Optional — absence encodes "no learner override, fall through to course". */
+  theme?: LearnerTheme;
 }
 
 // ── Intake ──
