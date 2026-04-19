@@ -5,7 +5,7 @@
   "nodeModulesDir": "manual",
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check && deno task check:design",
-    "check:design": "deno run --allow-read scripts/check_no_scrim_vars.ts",
+    "check:design": "deno run --allow-read scripts/check_no_scrim_vars.ts && deno run --allow-read scripts/check_design_tokens.ts",
     "dev": "vite",
     "build": "vite build",
     "start": "deno task build && deno serve -A _fresh/server.js",

@@ -1,13 +1,19 @@
 import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
 
-const LEVEL_COLORS = [
-  "#e5e7eb", // 0 - gray
-  "#bfdbfe", // 1 - blue
-  "#bbf7d0", // 2 - green
-  "#fde68a", // 3 - yellow
-  "#fdba74", // 4 - orange
-  "#c4b5fd", // 5 - purple
+/**
+ * Competency-level → token. 6 slots (levels 0..5). These map to existing
+ * --ale-* tokens; a dedicated level-color ramp is deferred until two
+ * consecutive chrome migrations ask for the same palette
+ * (docs/design-system.md § Deferred).
+ */
+const LEVEL_TOKENS = [
+  "var(--ale-color-border)", // 0 — not assessed
+  "var(--ale-color-primary-light)", // 1 — conceptual
+  "var(--ale-color-info)", // 2 — understanding
+  "var(--ale-color-success)", // 3 — application
+  "var(--ale-color-warning)", // 4 — independent
+  "var(--ale-color-primary)", // 5 — expert
 ];
 
 const LEVEL_LABELS = [
@@ -18,6 +24,15 @@ const LEVEL_LABELS = [
   "Zelfstandig",
   "Expert",
 ];
+
+/** Neutral-tint surface: bg blended with a small amount of border color. */
+const SURFACE_TINT =
+  "color-mix(in srgb, var(--ale-color-border) 30%, var(--ale-color-bg))";
+
+/** Status-tinted surface: status color blended into bg at low ratio. */
+function statusTint(token: string): string {
+  return `color-mix(in srgb, ${token} 15%, var(--ale-color-bg))`;
+}
 
 export default define.page(async function Dashboard(ctx) {
   const { repos, config } = ctx.state;
@@ -57,7 +72,7 @@ export default define.page(async function Dashboard(ctx) {
         <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">
           {curriculum.meta.name}
         </h1>
-        <p style="color: #6b7280;">
+        <p style="color: var(--ale-color-muted);">
           {learner.profile.name} — {curriculum.meta.description}
         </p>
       </header>
@@ -66,7 +81,9 @@ export default define.page(async function Dashboard(ctx) {
       {!intakeCompleted && (
         <a
           href="/intake"
-          style="display: block; padding: 1rem; margin-bottom: 1.5rem; background: #fef3c7; border: 1px solid #fde68a; border-radius: 0.5rem; color: #92400e; text-decoration: none;"
+          style={`display: block; padding: 1rem; margin-bottom: 1.5rem; background: ${
+            statusTint("var(--ale-color-warning)")
+          }; border: 1px solid var(--ale-color-warning); border-radius: var(--ale-radius); color: var(--ale-color-warning); text-decoration: none;`}
         >
           <strong>Intake vereist</strong>{" "}
           — Voordat het leertraject kan beginnen moet de intake worden
@@ -76,14 +93,22 @@ export default define.page(async function Dashboard(ctx) {
 
       {/* Wellbeing banners */}
       {learnerState?.wellbeing?.status === "paused" && (
-        <div style="padding: 1rem; margin-bottom: 1.5rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 0.5rem; color: #0c4a6e;">
+        <div
+          style={`padding: 1rem; margin-bottom: 1.5rem; background: ${
+            statusTint("var(--ale-color-info)")
+          }; border: 1px solid var(--ale-color-info); border-radius: var(--ale-radius); color: var(--ale-color-info);`}
+        >
           <strong>Leertraject gepauzeerd</strong>{" "}
           — Neem de tijd die je nodig hebt. Wanneer je klaar bent om terug te
           komen, laat het de AI coach weten.
         </div>
       )}
       {learnerState?.wellbeing?.status === "returning" && (
-        <div style="padding: 1rem; margin-bottom: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; color: #166534;">
+        <div
+          style={`padding: 1rem; margin-bottom: 1.5rem; background: ${
+            statusTint("var(--ale-color-success)")
+          }; border: 1px solid var(--ale-color-success); border-radius: var(--ale-radius); color: var(--ale-color-success);`}
+        >
           <strong>Welkom terug</strong>{" "}
           — We beginnen rustig. De AI coach helpt je om te herijken waar je
           gebleven was.
@@ -93,7 +118,7 @@ export default define.page(async function Dashboard(ctx) {
       {/* Today CTA */}
       <a
         href="/today"
-        style="display: block; padding: 1rem; margin-bottom: 1.5rem; background: #3b82f6; color: white; text-decoration: none; border-radius: 0.5rem; font-weight: 600; text-align: center;"
+        style="display: block; padding: 1rem; margin-bottom: 1.5rem; background: var(--ale-color-primary); color: var(--ale-color-bg); text-decoration: none; border-radius: var(--ale-radius); font-weight: 600; text-align: center;"
       >
         Naar vandaag →
       </a>
@@ -122,14 +147,14 @@ export default define.page(async function Dashboard(ctx) {
       {currentPlan && (
         <a
           href={`/week/${currentPlan.weekNumber}`}
-          style="display: block; text-decoration: none; color: inherit; margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;"
+          style="display: block; text-decoration: none; color: inherit; margin-bottom: 2rem; padding: 1rem; border: 1px solid var(--ale-color-border); border-radius: var(--ale-radius);"
         >
           <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">
             Week {currentPlan.weekNumber}:{" "}
             {curriculum.domains.find((d) => d.id === currentPlan.domainId)
               ?.name ?? currentPlan.domainId}
           </h2>
-          <p style="color: #4b5563;">{currentPlan.summary}</p>
+          <p style="color: var(--ale-color-muted);">{currentPlan.summary}</p>
         </a>
       )}
 
@@ -138,12 +163,16 @@ export default define.page(async function Dashboard(ctx) {
         <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">
           Curriculum Bridge
         </h2>
-        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">
+        <div
+          style={`display: flex; align-items: center; gap: 1rem; padding: 1rem; background: ${SURFACE_TINT}; border-radius: var(--ale-radius);`}
+        >
           <BridgeEnd
             label={curriculum.bridge.from?.label ?? "Blank slate"}
             proficiency={curriculum.bridge.from?.proficiency ?? "none"}
           />
-          <span style="font-size: 1.5rem; color: #9ca3af;">→</span>
+          <span style="font-size: 1.5rem; color: var(--ale-color-muted);">
+            →
+          </span>
           <BridgeEnd
             label={curriculum.bridge.to.label}
             proficiency={curriculum.bridge.to.proficiency}
@@ -162,7 +191,7 @@ export default define.page(async function Dashboard(ctx) {
           );
           return (
             <div key={phase.id} style="margin-bottom: 1.5rem;">
-              <h3 style="font-size: 0.875rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+              <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--ale-color-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
                 Fase {phase.id}: {phase.name}
               </h3>
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem;">
@@ -191,9 +220,13 @@ export default define.page(async function Dashboard(ctx) {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem; text-align: center;">
+    <div
+      style={`padding: 1rem; background: ${SURFACE_TINT}; border-radius: var(--ale-radius); text-align: center;`}
+    >
       <div style="font-size: 1.5rem; font-weight: 700;">{value}</div>
-      <div style="font-size: 0.75rem; color: #6b7280;">{label}</div>
+      <div style="font-size: 0.75rem; color: var(--ale-color-muted);">
+        {label}
+      </div>
     </div>
   );
 }
@@ -202,9 +235,11 @@ function BridgeEnd(
   { label, proficiency }: { label: string; proficiency: string },
 ) {
   return (
-    <div style="flex: 1; padding: 0.75rem; background: white; border-radius: 0.375rem; border: 1px solid #e5e7eb;">
+    <div style="flex: 1; padding: 0.75rem; background: var(--ale-color-bg); border-radius: var(--ale-radius); border: 1px solid var(--ale-color-border);">
       <div style="font-weight: 600;">{label}</div>
-      <div style="font-size: 0.75rem; color: #6b7280;">{proficiency}</div>
+      <div style="font-size: 0.75rem; color: var(--ale-color-muted);">
+        {proficiency}
+      </div>
     </div>
   );
 }
@@ -221,25 +256,27 @@ function DomainCard(
   return (
     <a
       href={`/week/${week}`}
-      style={`display: block; text-decoration: none; color: inherit; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; border-left: 4px solid ${
-        LEVEL_COLORS[level]
-      }; background: white;`}
+      style={`display: block; text-decoration: none; color: inherit; padding: 0.75rem; border-radius: var(--ale-radius); border: 1px solid var(--ale-color-border); border-left: 4px solid ${
+        LEVEL_TOKENS[level]
+      }; background: var(--ale-color-bg);`}
     >
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem;">
         <span style="font-weight: 600; font-size: 0.875rem;">{name}</span>
-        <span style="font-size: 0.75rem; color: #9ca3af;">W{week}</span>
+        <span style="font-size: 0.75rem; color: var(--ale-color-muted);">
+          W{week}
+        </span>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span
           style={`font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 9999px; background: ${
-            LEVEL_COLORS[level]
+            LEVEL_TOKENS[level]
           };`}
         >
           {LEVEL_LABELS[level]}
         </span>
       </div>
       {fromLabel && (
-        <div style="font-size: 0.6875rem; color: #9ca3af; margin-top: 0.375rem;">
+        <div style="font-size: 0.6875rem; color: var(--ale-color-muted); margin-top: 0.375rem;">
           {fromLabel} → {toLabel}
         </div>
       )}

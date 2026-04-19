@@ -1,0 +1,26 @@
+# Un-migrated source files for the D6 chrome migration.
+#
+# Each path in this list is EXCLUDED from the design-tokens check
+# (scripts/check_design_tokens.ts). When a file is migrated to read
+# `--ale-*` aliases only, its entry is removed from this list; CI then
+# enforces the rule for that path going forward.
+#
+# See docs/design-system.md § WP-D6 and § Fitness functions #4 and #12.
+# Paths are relative to src/.
+#
+# Comments (#-prefixed) and blank lines are ignored. The line count
+# (excluding comments and blanks) is the migration progress bar.
+
+components/Button.tsx
+components/FeedbackCard.tsx
+islands/AnswerForm.tsx
+islands/Counter.tsx
+islands/IntakeChat.tsx
+islands/ScrimPlayer.tsx
+islands/SelfAssessment.tsx
+routes/_app.tsx
+routes/day/[dayId].tsx
+routes/intake.tsx
+routes/retention.tsx
+routes/today.tsx
+routes/week/[weekNumber]/index.tsx
