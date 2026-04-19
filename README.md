@@ -44,7 +44,18 @@ deno task dev
 
 Open `http://localhost:5188`.
 
-The app loads `config/examples/k8s-hybrid-cloud/` by default.
+The app loads `config/examples/learning-ale/` by default — a self-referential
+course that teaches ALE's architecture using ALE itself. It's the intended
+onboarding experience for anyone new to the system.
+
+A second example, `config/examples/k8s-hybrid-cloud/`, is a richer real-world
+curriculum (Kubernetes & hybrid-cloud certification prep). Point the app at
+it with `ALE_CONFIG_DIR`:
+
+```bash
+cd src
+ALE_CONFIG_DIR=../config/examples/k8s-hybrid-cloud deno task dev
+```
 
 ## Use your own configuration
 
@@ -66,7 +77,8 @@ cd src
 ALE_CONFIG_DIR=../config/examples/k8s-hybrid-cloud deno task dev
 ```
 
-If you want to create a brand new curriculum, copy the example directory first:
+If you want to create a brand new curriculum, copy an example directory first —
+`k8s-hybrid-cloud` is the richer starting point:
 
 ```bash
 cp -R config/examples/k8s-hybrid-cloud config/my-curriculum

@@ -68,8 +68,11 @@ function defaultConfigDir(): string {
   const envDir = Deno.env.get("ALE_CONFIG_DIR");
   if (envDir) return envDir;
 
+  // Default to the self-referential `learning-ale` course — a fresh install
+  // starts by learning how ALE itself works. The `k8s-hybrid-cloud` example
+  // remains in config/examples/ as a richer real-world reference.
   const thisDir = new URL(".", import.meta.url).pathname;
-  return join(thisDir, "..", "..", "config", "examples", "k8s-hybrid-cloud");
+  return join(thisDir, "..", "..", "config", "examples", "learning-ale");
 }
 
 /**

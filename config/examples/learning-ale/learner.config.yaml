@@ -1,0 +1,61 @@
+profile:
+  name: "ALE Learner"
+  language: "en"
+  timezone: "UTC"
+
+background:
+  summary: "Engineer familiar with TypeScript/Deno, comfortable with AI SDKs, adopting or extending ALE — holds pieces of the system but not the full architectural map."
+  technologies:
+    - name: "TypeScript"
+      proficiency: "expert"
+    - name: "Deno"
+      proficiency: "advanced"
+    - name: "Fresh"
+      proficiency: "intermediate"
+    - name: "AI SDKs"
+      proficiency: "advanced"
+    - name: "MCP"
+      proficiency: "intermediate"
+    - name: "Zod"
+      proficiency: "advanced"
+    - name: "Deno KV"
+      proficiency: "intermediate"
+
+intake:
+  completed: false
+  completed_at: null
+  result: null
+
+schedule:
+  rest_day: 0 # 0=Sunday
+  active_days: [1, 2, 3, 4, 5, 6] # Mon–Sat
+
+  day_plan:
+    1: "theory"
+    2: "practice_guided"
+    3: "practice_open"
+    4: "practice_troubleshoot"
+    5: "assessment"
+    6: "review"
+
+  generation_time: "22:00"
+
+  assessment_deadline_day: 6
+  assessment_deadline_time: "20:00"
+
+  feedback_available_day: 6
+  feedback_available_time: "22:00"
+
+  retention:
+    enabled: true
+    days: [1, 2, 3, 4, 5, 6]
+    questions_per_day:
+      min: 1
+      max: 3
+
+preferences:
+  content_length: "concise"
+  tone: "collegial"
+  show_bridges: true
+  hints_enabled: true
+  time_tracking: false

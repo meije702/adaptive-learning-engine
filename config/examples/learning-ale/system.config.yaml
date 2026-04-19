@@ -1,0 +1,64 @@
+server:
+  port: 8000
+  base_url: "https://learn.deno.dev"
+
+auth:
+  type: "bearer"
+  # Token via environment variable: ALE_AUTH_TOKEN
+
+storage:
+  type: "deno-kv"
+
+ai:
+  provider: "anthropic"
+  model: "claude-sonnet-4-20250514"
+  system_prompt_template: |
+    You are an ALE teacher for an experienced engineer learning how ALE itself is built.
+    Learner background: {learner.background.summary}
+    Communicate in {learner.language}.
+    Tone: {learner.preferences.tone}.
+
+    This curriculum is self-referential: the learner is using ALE to learn
+    ALE. Whenever you teach a concept, point at the actual source code (see
+    the domain's `resources` field in curriculum.config.yaml) and the
+    authoritative doc section. Prefer reading real code over inventing
+    examples — that's the whole point of the dogfood.
+
+    Also read docs/ale-context.md before generating any day content. It
+    holds the current state of each architectural concern, known rough
+    edges, and what's stable vs still evolving. Keep the learner honest
+    about which parts of ALE are settled and which are in motion.
+    {if learner.preferences.show_bridges}
+    Use bridges actively: map the learner's existing software-engineering
+    mental models onto ALE's specific abstractions.
+    {/if}
+
+mcp:
+  transport: "stdio"
+  path: "/mcp"
+
+retention:
+  initial_interval_days: 1
+  multiplier_correct: 2.5
+  multiplier_partial: 1.2
+  multiplier_incorrect: 0.0
+  max_interval_days: 60
+  min_domains_per_session: 2 # interleaving: mix at least 2 domains per retention session
+
+content:
+  cognitive_budget: 4 # max new concepts per session
+  max_length:
+    theory: 600
+    practice: 400
+    assessment: 500
+    retention_question: 50
+    feedback: 300
+  assessment:
+    question_types: ["scenario", "open", "multiple_choice", "troubleshoot"]
+    options_count: 4
+    passing_score: "partial"
+
+export:
+  enabled: true
+  format: "json"
+  schedule: "weekly"

@@ -1,0 +1,880 @@
+meta:
+  id: "learning-ale"
+  name: "Understanding the Adaptive Learning Engine"
+  version: "1.0.0"
+  description: "A self-referential course that teaches you how ALE works, one architectural layer at a time, using ALE itself as the vehicle."
+  estimated_weeks: 18
+  language: "en"
+
+bridge:
+  from:
+    label: "Engineer who built or adopted ALE incrementally"
+    concepts: ["TypeScript", "Deno", "Fresh", "AI SDKs", "partial ALE knowledge"]
+    proficiency: "advanced"
+  to:
+    label: "Can navigate every layer of ALE and author a new curriculum in it"
+    concepts:
+      - "ALE architecture"
+      - "domain modules"
+      - "MCP tool authoring"
+      - "persistence snapshots"
+      - "design system layering"
+      - "curriculum authoring"
+    proficiency: "advanced"
+
+levels:
+  - id: 0
+    label: "Unknown"
+    description: "Not yet covered"
+    assessment_type: null
+  - id: 1
+    label: "Conceptual"
+    description: "Can explain what it is and why it exists"
+    assessment_type: "theory"
+  - id: 2
+    label: "Understanding"
+    description: "Can relate it to other parts of the system"
+    assessment_type: "comparison"
+  - id: 3
+    label: "Application"
+    description: "Can configure or use it with guidance"
+    assessment_type: "guided_practice"
+  - id: 4
+    label: "Independent"
+    description: "Can extend or modify it without guidance"
+    assessment_type: "open_scenario"
+  - id: 5
+    label: "Expert"
+    description: "Can design variants and explain the trade-offs"
+    assessment_type: "architecture_challenge"
+
+phases:
+  - id: 1
+    name: "Mental model"
+    description: "The whole-system map: why ALE is split into three components, what the bridge principle buys, why MCP is the contract."
+    bridge:
+      from:
+        label: "Pieces seen separately as they were built"
+        concepts: ["ALE", "Scrim", "MCP", "Claude"]
+        proficiency: "advanced"
+      to:
+        label: "Whole-system map held in one place"
+        concepts: ["three-component topology", "bridge principle", "AI-agnostic contract"]
+        proficiency: "intermediate"
+
+  - id: 2
+    name: "Data at rest"
+    description: "Every persisted entity, its repository, how unstable shapes are versioned, and how config flows through the loader."
+    bridge:
+      from:
+        label: "Comfortable with Deno KV and Fresh"
+        concepts: ["KV", "repository pattern", "Zod"]
+        proficiency: "expert"
+      to:
+        label: "Know every ALE entity and how it gets read/written"
+        concepts: ["entity map", "snapshot versioning", "config layering"]
+        proficiency: "intermediate"
+
+  - id: 3
+    name: "Domain logic"
+    description: "Where business rules live (src/domain/), why they were extracted from the boundaries, and how the pure-function seam stays honest."
+    bridge:
+      from:
+        label: "Know where data lives; not yet where rules live"
+        concepts: ["entity map", "repositories"]
+        proficiency: "intermediate"
+      to:
+        label: "Can write a pure domain module with tests"
+        concepts: ["pure rules", "state machines", "error taxonomy"]
+        proficiency: "intermediate"
+
+  - id: 4
+    name: "Runtime + flow"
+    description: "How requests enter the system (REST, MCP), how correlation IDs flow, and how the weekly cycle unfolds end-to-end."
+    bridge:
+      from:
+        label: "Rules and data separately, not yet connected to callers"
+        concepts: ["domain modules", "repositories"]
+        proficiency: "intermediate"
+      to:
+        label: "Can trace any request from boundary to persisted state"
+        concepts: ["REST handlers", "MCP tools", "correlation IDs", "weekly cycle"]
+        proficiency: "advanced"
+
+  - id: 5
+    name: "Design system"
+    description: "The visual layer: token vocabulary owned by Scrim, aliased by ALE, composed through presets + course YAML + learner overlay. Fitness functions as executable architectural specs."
+    bridge:
+      from:
+        label: "Architectural backbone held; visual layer opaque"
+        concepts: ["core architecture"]
+        proficiency: "advanced"
+      to:
+        label: "Can trace a token from source to rendered pixel and add a preset"
+        concepts: ["token aliases", "theme composition", "provenance", "fitness functions"]
+        proficiency: "intermediate"
+
+domains:
+  # ── P1 — Mental model (all week 1, compressed intro) ────────────
+
+  - id: "system-topology"
+    name: "System topology"
+    phase: 1
+    week: 1
+    tags: ["architecture", "mcp", "scrim", "topology"]
+    prerequisites: []
+    bridge:
+      from:
+        label: "Built the pieces, didn't hold the whole"
+        concepts: ["ALE", "Scrim", "AI agent"]
+        proficiency: "advanced"
+      to:
+        label: "Three-component model held in one place"
+        concepts: ["ALE as system of record", "Scrim as runtime library", "Agent via MCP"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Why three components, not one"
+      - "What each owns and what it doesn't"
+      - "The stdio seam between Agent and ALE"
+      - "Why Scrim has no server component"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "docs/technical-design.md § 1"
+      - "src/main.ts"
+      - "src/mcp/main.ts"
+
+  - id: "bridge-principle"
+    name: "Bridge principle"
+    phase: 1
+    week: 1
+    tags: ["pedagogy", "architecture", "bridge"]
+    prerequisites: []
+    bridge:
+      from:
+        label: "Know the term, haven't seen it applied recursively"
+        concepts: ["from/to states"]
+        proficiency: "advanced"
+      to:
+        label: "See the bridge pattern at every layer"
+        concepts: ["curriculum bridge", "phase bridge", "domain bridge", "week/day bridge"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Recursive application from curriculum to day"
+      - "Empty `from` = first principles; rich `from` = analogy"
+      - "Why strategy selection falls out of the bridge shape"
+      - "The bridge as documentation of intent"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "docs/SYSTEM.md § bridge principle"
+      - "config/examples/k8s-hybrid-cloud/curriculum.config.yaml"
+
+  - id: "coach-stance"
+    name: "Coach, not instructor"
+    phase: 1
+    week: 1
+    tags: ["pedagogy", "coaching", "feedback"]
+    prerequisites: []
+    bridge:
+      from:
+        label: "Seen the claim, haven't felt its architectural weight"
+        concepts: ["feedback", "scaffolding"]
+        proficiency: "advanced"
+      to:
+        label: "See the coaching stance encoded in the system"
+        concepts: ["counter-questions", "three-component feedback", "no gamification"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Conceptual vs factual questions — different responses"
+      - "Feed-up / feed-back / feed-forward"
+      - "Task / process / self_regulation as feedback levels"
+      - "Why wellbeing is first-class"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "CLAUDE.md"
+      - "docs/SYSTEM.md § coaching"
+
+  - id: "mcp-contract"
+    name: "MCP as the contract"
+    phase: 1
+    week: 1
+    tags: ["mcp", "stdio", "ai-agnostic"]
+    prerequisites: []
+    bridge:
+      from:
+        label: "Have used AI SDKs; MCP is newer to the toolkit"
+        concepts: ["REST", "tool calling"]
+        proficiency: "expert"
+      to:
+        label: "Understand what the stdio seam enables"
+        concepts: ["replaceable agent", "typed tool surface", "observation vs steering"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Why stdio transport (vs HTTP/SSE)"
+      - "Tools as the ONLY interface — no DB/FS access"
+      - "src/mcp/sdk_compat.js — the deliberate bridge"
+      - "defineTool<Schema> as the typed boundary"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/mcp/main.ts"
+      - "src/mcp/sdk_compat.js"
+      - "src/mcp/define_tool.ts"
+      - "docs/technical-design.md § 4"
+
+  # ── P2 — Data at rest (weeks 2–5) ───────────────────────────────
+
+  - id: "entity-model"
+    name: "Entity model"
+    phase: 2
+    week: 2
+    tags: ["types", "entities", "kv"]
+    prerequisites: ["system-topology"]
+    bridge:
+      from:
+        label: "Know Deno KV; no specific entity map yet"
+        concepts: ["Deno.Kv", "serialization"]
+        proficiency: "expert"
+      to:
+        label: "Know every persisted ALE entity"
+        concepts:
+          - "Progress"
+          - "WeekPlan"
+          - "DayContent"
+          - "Question"
+          - "Answer"
+          - "Feedback"
+          - "RetentionSchedule"
+          - "CalibrationEntry"
+          - "IntakeSession"
+          - "LearnerState"
+        proficiency: "intermediate"
+    key_concepts:
+      - "The nine persisted entities and their keys"
+      - "Why Question and SceneDocument coexist"
+      - "Progress.history as an audit trail"
+      - "LearnerState as the overlay on static config"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/db/types.ts"
+      - "docs/adr/001-data-model-api.md"
+
+  - id: "repository-pattern"
+    name: "Repository pattern"
+    phase: 2
+    week: 3
+    tags: ["repositories", "kv", "interfaces"]
+    prerequisites: ["entity-model"]
+    bridge:
+      from:
+        label: "Seen the pattern; haven't read ALE's implementation"
+        concepts: ["repository", "dependency inversion"]
+        proficiency: "expert"
+      to:
+        label: "Can add a new repo following the pattern"
+        concepts: ["Repository interface", "KV impl", "factory wiring", "test doubles"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Interface-first design in repositories.ts"
+      - "KV implementations as thin read/write-through"
+      - "createRepositories() factory + context.state injection"
+      - "createTestKv() for in-memory testing"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/db/repositories.ts"
+      - "src/db/factory.ts"
+      - "src/db/kv/"
+
+  - id: "persistence-snapshots"
+    name: "Persistence snapshots and versioning"
+    phase: 2
+    week: 4
+    tags: ["versioning", "snapshots", "migration"]
+    prerequisites: ["entity-model", "repository-pattern"]
+    bridge:
+      from:
+        label: "Know stored data can drift; haven't formalised it here"
+        concepts: ["migrations", "schema evolution"]
+        proficiency: "advanced"
+      to:
+        label: "Know the ALE snapshot rule and when to apply it"
+        concepts: ["SceneDocumentSnapshot", "GapAnalysisSnapshot", "unwrap helpers"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Only UNSTABLE shapes get versioning"
+      - "Wrap on write via to*Snapshot, unwrap on read"
+      - "Readers tolerate legacy unwrapped records"
+      - "When to add a new snapshotted shape"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/scrim/snapshot.ts"
+      - "src/analysis/types.ts"
+      - "docs/design-system.md § Deferred (schema versioning trigger)"
+
+  - id: "configuration-layer"
+    name: "Configuration layer"
+    phase: 2
+    week: 5
+    tags: ["config", "yaml", "zod", "loader"]
+    prerequisites: ["entity-model"]
+    bridge:
+      from:
+        label: "Comfortable with Zod; haven't mapped ALE's four YAMLs yet"
+        concepts: ["Zod", "YAML"]
+        proficiency: "expert"
+      to:
+        label: "Know which config flows where, and how theme loads optionally"
+        concepts: ["system.config.yaml", "curriculum.config.yaml", "learner.config.yaml", "theme.config.yaml"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Three required configs, one optional (theme)"
+      - "loadOptional() semantics — ENOENT + empty YAML both fall back"
+      - "ALE_CONFIG_DIR env override"
+      - "Zod schemas as the contract"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/config/loader.ts"
+      - "src/config/schemas/"
+      - "docs/adr/002-configuration-first.md"
+
+  # ── P3 — Domain logic (weeks 6–9) ───────────────────────────────
+
+  - id: "pure-domain-rationale"
+    name: "Why pure domain modules exist"
+    phase: 3
+    week: 6
+    tags: ["domain", "srp", "duplication"]
+    prerequisites: ["entity-model", "repository-pattern"]
+    bridge:
+      from:
+        label: "Rules scattered; haven't felt the drift cost"
+        concepts: ["business logic"]
+        proficiency: "advanced"
+      to:
+        label: "Recognise the duplication class and the fix"
+        concepts: ["boundary ↔ boundary drift", "pure function as single source of truth"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "The class of bug: rule duplicated at REST + MCP, silent drift"
+      - "src/domain/ as the single-source seam"
+      - "Pure function + IO at the edge as the invariant"
+      - "Four rules extracted: calibration, wellbeing, feedback, MC eval"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/domain/calibration.ts"
+      - "src/domain/wellbeing.ts"
+      - "src/domain/feedback.ts"
+      - "src/domain/evaluate_mc.ts"
+      - "AGENTS.md § Where things live"
+
+  - id: "spaced-repetition"
+    name: "Spaced repetition as pure math"
+    phase: 3
+    week: 7
+    tags: ["sm-2", "retention", "pure-function"]
+    prerequisites: ["pure-domain-rationale"]
+    bridge:
+      from:
+        label: "Know SM-2 conceptually; haven't read this implementation"
+        concepts: ["spaced repetition", "interval decay"]
+        proficiency: "advanced"
+      to:
+        label: "Understand nextScheduleAfterReview + decayAfterPause"
+        concepts: ["multiplier semantics", "streak reset rule", "pause decay formula"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Three multipliers: correct / partial / incorrect"
+      - "Why incorrect resets both interval and streak"
+      - "Pause decay: interval / (1 + pauseDays/interval)"
+      - "Why the math lives outside the repository"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/domain/spaced_repetition.ts"
+      - "src/domain/spaced_repetition_test.ts"
+      - "src/db/kv/retention.ts"
+
+  - id: "state-machines"
+    name: "State machines in the domain layer"
+    phase: 3
+    week: 8
+    tags: ["state-machine", "wellbeing", "learner-theme"]
+    prerequisites: ["pure-domain-rationale", "entity-model"]
+    bridge:
+      from:
+        label: "Comfortable with state machines; haven't compared these two"
+        concepts: ["states", "transitions"]
+        proficiency: "expert"
+      to:
+        label: "Can reason about simple vs rich state machines here"
+        concepts: ["applyWellbeingTransition", "computeNextLearnerTheme", "supersede rule", "previous/revert"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Wellbeing: three states, timestamps, no provenance history"
+      - "LearnerTheme: provenance + previous + supersede rule"
+      - "Why `previous` is a separate type (no chain)"
+      - "ai_proposed as data-but-not-render state"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/domain/wellbeing.ts"
+      - "src/domain/learner_theme.ts"
+      - "src/domain/learner_theme_test.ts"
+
+  - id: "error-taxonomy"
+    name: "Error taxonomy and boundary mappers"
+    phase: 3
+    week: 9
+    tags: ["errors", "rfc-7807", "boundaries"]
+    prerequisites: ["pure-domain-rationale"]
+    bridge:
+      from:
+        label: "Used custom error classes; haven't mapped the ALE taxonomy"
+        concepts: ["Error subclassing"]
+        proficiency: "expert"
+      to:
+        label: "Can throw a DomainError and know both boundaries render it"
+        concepts: ["DomainError hierarchy", "problemFromDomainError", "defineTool mapper"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "ValidationError / NotFoundError / ConflictError with status codes"
+      - "REST maps to RFC 7807 problem+json"
+      - "MCP maps to txt({ error, code })"
+      - "Why throw from domain and catch at boundary, not the reverse"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/domain/errors.ts"
+      - "src/api/error.ts"
+      - "src/mcp/define_tool.ts"
+
+  # ── P4 — Runtime + flow (weeks 10–14) ───────────────────────────
+
+  - id: "surfaces"
+    name: "REST and MCP as parallel surfaces"
+    phase: 4
+    week: 10
+    tags: ["rest", "mcp", "surfaces", "define-tool"]
+    prerequisites: ["pure-domain-rationale", "configuration-layer"]
+    bridge:
+      from:
+        label: "Know each surface separately"
+        concepts: ["Fresh routes", "MCP tools"]
+        proficiency: "advanced"
+      to:
+        label: "See both as thin wrappers over the same domain functions"
+        concepts: ["ctx.state injection", "defineTool<Schema>", "parallel handlers"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Fresh define.handlers + ctx.state.repos/config"
+      - "src/mcp/tools/*.ts — concern-split registration"
+      - "defineTool infers input type from Zod schema"
+      - "Both surfaces call the same domain functions"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/mcp/server.ts"
+      - "src/mcp/tools/"
+      - "src/mcp/define_tool.ts"
+      - "src/routes/api/"
+
+  - id: "observability"
+    name: "Structured logging and correlation IDs"
+    phase: 4
+    week: 11
+    tags: ["observability", "correlation", "logging"]
+    prerequisites: ["surfaces"]
+    bridge:
+      from:
+        label: "Used logging libraries; no in-codebase correlation model"
+        concepts: ["console.log", "structured logs"]
+        proficiency: "advanced"
+      to:
+        label: "Can trace any call through REST or MCP by correlation ID"
+        concepts: ["AsyncLocalStorage", "withCorrelationId", "defineTool logging hook"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "JSON lines to stderr (stdout is MCP transport)"
+      - "One correlation ID per request / per tool call"
+      - "AsyncLocalStorage propagates through awaits"
+      - "Why repos don't log (correlation ID is enough)"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/obs/logger.ts"
+      - "src/obs/correlation.ts"
+      - "src/main.ts"
+      - "src/mcp/define_tool.ts"
+
+  - id: "intake-weekly-cycle"
+    name: "Intake and the weekly cycle"
+    phase: 4
+    week: 12
+    tags: ["intake", "weekly-cycle", "flow"]
+    prerequisites: ["surfaces", "state-machines"]
+    bridge:
+      from:
+        label: "Know the tools exist; haven't traced the full flow"
+        concepts: ["MCP tools", "REST routes"]
+        proficiency: "intermediate"
+      to:
+        label: "Can trace intake → week plan → day → question → answer → feedback → progress"
+        concepts: ["start_intake", "complete_intake", "create_week_plan", "create_day_content", "create_feedback"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Intake as a staged conversation with a state field"
+      - "How baseline results seed Progress levels"
+      - "Weekly cycle days: theory → practice → assessment → review"
+      - "Feedback applying levelApplied = Progress update"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/mcp/tools/intake.ts"
+      - "src/mcp/tools/generate.ts"
+      - "src/domain/feedback.ts"
+      - "docs/technical-design.md § 5"
+
+  - id: "runtime-overlays"
+    name: "Retention, calibration, and wellbeing at runtime"
+    phase: 4
+    week: 13
+    tags: ["retention", "calibration", "wellbeing"]
+    prerequisites: ["spaced-repetition", "state-machines", "surfaces"]
+    bridge:
+      from:
+        label: "Know the pure math; haven't seen how it lands in the flow"
+        concepts: ["SM-2", "state transitions"]
+        proficiency: "intermediate"
+      to:
+        label: "Can predict what happens when the learner pauses mid-week"
+        concepts: ["set_wellbeing_status", "recalculate_retention_after_pause", "record_self_assessment"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Wellbeing transitions: active → paused → returning → active"
+      - "Returning triggers retention recalculation"
+      - "Calibration delta surfaces metacognitive patterns"
+      - "Runtime overlay ≠ curriculum — LearnerState is mutable on top of YAML"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/mcp/tools/wellbeing.ts"
+      - "src/mcp/tools/calibration.ts"
+      - "src/routes/api/wellbeing.ts"
+      - "src/routes/api/calibration.ts"
+
+  - id: "gap-analysis-lifecycle"
+    name: "Gap analysis: compute, snapshot, recalc"
+    phase: 4
+    week: 14
+    tags: ["gap-analysis", "snapshot", "recalc"]
+    prerequisites: ["entity-model", "surfaces", "persistence-snapshots"]
+    bridge:
+      from:
+        label: "Know intake produces a gap analysis; haven't followed its whole life"
+        concepts: ["gap-analysis"]
+        proficiency: "intermediate"
+      to:
+        label: "Can follow a GapAnalysis from compute → snapshot → recalc after assessment"
+        concepts: ["computeGapAnalysis", "GapAnalysisSnapshot", "recalculate_gaps trajectory comparison"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Pure compute lives in src/analysis/gap.ts"
+      - "Intake persists a GapAnalysisSnapshot with schemaVersion"
+      - "recalculate_gaps compares current trajectory against intake estimate"
+      - "Why the same compute runs twice (intake + assessment-week)"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/analysis/gap.ts"
+      - "src/analysis/types.ts"
+      - "src/mcp/tools/gap.ts"
+
+  # ── P5 — Design system (weeks 15–18) ────────────────────────────
+
+  - id: "token-vocabulary"
+    name: "Token vocabulary and the alias layer"
+    phase: 5
+    week: 15
+    tags: ["design-system", "tokens", "aliases"]
+    prerequisites: ["mcp-contract"]
+    bridge:
+      from:
+        label: "Used CSS variables; haven't seen the DI seam in ALE"
+        concepts: ["CSS custom properties"]
+        proficiency: "advanced"
+      to:
+        label: "Understand why Scrim owns names and ALE owns values"
+        concepts: ["themeProperties", "--ale-* alias", "dependency inversion in CSS"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Scrim exposes 22 --scrim-* tokens as a runtime export"
+      - "aliases.css is the ONLY file allowed to reference --scrim-*"
+      - "--ale-* is ALE's stable vocabulary regardless of Scrim churn"
+      - "Parallel to the mcp-contract: contract lives upstream, host adapts"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/design/tokens/aliases.css"
+      - "src/design/tokens/aliases.ts"
+      - "docs/design-system.md § Layer 1 and 1.5"
+
+  - id: "preset-composition"
+    name: "Presets, merge, and per-course theming"
+    phase: 5
+    week: 16
+    tags: ["themes", "merge", "theme-config"]
+    prerequisites: ["token-vocabulary", "configuration-layer"]
+    bridge:
+      from:
+        label: "Know the token layer; haven't composed one"
+        concepts: ["CSS variables"]
+        proficiency: "intermediate"
+      to:
+        label: "Can write a preset + a per-course override and know the result"
+        concepts: ["Theme type", "mergeTheme", "theme.config.yaml composition"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Three preset modules: default / dark / high_contrast"
+      - "mergeTheme(base, ...partials) with structuredClone up front"
+      - "theme.config.yaml is optional; absent = default preset"
+      - "Composition order: default ← course YAML ← learner overlay"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/design/themes/"
+      - "src/design/themes/merge.ts"
+      - "src/config/schemas/theme.ts"
+      - "docs/design-system.md § Layer 2 and 3"
+
+  - id: "learner-theme-provenance"
+    name: "Learner theme with provenance"
+    phase: 5
+    week: 17
+    tags: ["learner-theme", "provenance", "state-machine"]
+    prerequisites: ["preset-composition", "state-machines"]
+    bridge:
+      from:
+        label: "Understand user pick; haven't seen the AI proposal state"
+        concepts: ["theme switcher"]
+        proficiency: "intermediate"
+      to:
+        label: "Can reason about supersede, revert, and the accept transition"
+        concepts: ["LearnerTheme", "PreviousTheme", "source union", "supersede rule"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "source ∈ user | ai_proposed | ai_accepted; ai_proposed doesn't render"
+      - "previous captures what WAS RENDERING, not the superseded proposal"
+      - "ai_accepted persists proposedAt AND sets acceptedAt"
+      - "PreviousTheme has no `previous` field — chain is one deep"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "src/domain/learner_theme.ts"
+      - "src/domain/learner_theme_test.ts"
+      - "docs/design-system.md § Layer 4"
+
+  - id: "fitness-functions"
+    name: "Fitness functions as architectural specs"
+    phase: 5
+    week: 18
+    tags: ["fitness-functions", "ci", "architectural-invariants"]
+    prerequisites:
+      [
+        "token-vocabulary",
+        "preset-composition",
+        "learner-theme-provenance",
+      ]
+    bridge:
+      from:
+        label: "Seen architectural claims in docs; haven't seen them as CI checks"
+        concepts: ["documentation"]
+        proficiency: "advanced"
+      to:
+        label: "Can write a new fitness function when an invariant needs enforcement"
+        concepts: ["grep scripts", "schema refinements", "allowlist mechanism"]
+        proficiency: "intermediate"
+    key_concepts:
+      - "Twelve invariants, each with a corresponding CI check"
+      - "Scripts (check_no_scrim_vars, check_design_tokens) vs Zod refinements"
+      - "The migration allowlist as a progress bar"
+      - "If it's not enforced, it drifts"
+    scaffolding_profile:
+      "1": "guided_with_hints"
+      "2": "minimal_hints_on_request"
+      "3": "minimal_hints_on_request"
+      "4": "none"
+      "5": "none"
+    resources:
+      - "docs/design-system.md § Fitness functions"
+      - "src/scripts/check_no_scrim_vars.ts"
+      - "src/scripts/check_design_tokens.ts"
+      - ".design/migration-remaining.txt"
+
+stretch:
+  frequency: 4
+  domains:
+    - id: "contribute-mcp-tool"
+      name: "Add an MCP tool end-to-end"
+      tags: ["mcp", "tools", "contribution"]
+      bridge:
+        from:
+          label: "Know the surface; haven't added a tool"
+          concepts: ["defineTool", "tool registration"]
+          proficiency: "intermediate"
+        to:
+          label: "Can add a tool with schema, handler, and test"
+          concepts:
+            - "Zod schema authoring"
+            - "tools/*.ts module choice"
+            - "InMemoryTransport integration test"
+          proficiency: "intermediate"
+      key_concepts:
+        - "Pick or create a tools/*.ts module by concern"
+        - "defineTool(server, name, { description, inputSchema }, handler)"
+        - "register() gets called from server.ts"
+        - "Integration test via Client + InMemoryTransport"
+
+    - id: "contribute-domain-module"
+      name: "Add a pure domain module"
+      tags: ["domain", "pure-function", "contribution"]
+      bridge:
+        from:
+          label: "Know the rationale; haven't added one"
+          concepts: ["src/domain/"]
+          proficiency: "intermediate"
+        to:
+          label: "Can extract a rule and wire both surfaces to it"
+          concepts: ["pure function design", "boundary updates", "tests first"]
+          proficiency: "intermediate"
+      key_concepts:
+        - "Spot the duplication class at a boundary"
+        - "Extract to src/domain/, keep IO out"
+        - "Update REST and MCP to call it"
+        - "Unit-test the pure function without KV"
+
+    - id: "contribute-entity"
+      name: "Add a persisted entity end-to-end"
+      tags: ["entity", "repository", "contribution"]
+      bridge:
+        from:
+          label: "Know the model; haven't added a full slice"
+          concepts: ["types", "repositories", "kv"]
+          proficiency: "intermediate"
+        to:
+          label: "Can add type + interface + KV impl + factory + tests"
+          concepts:
+            - "Schema addition"
+            - "Repository interface"
+            - "KV keys"
+            - "Roundtrip test"
+          proficiency: "intermediate"
+      key_concepts:
+        - "Types in src/db/types.ts (snapshot-wrap if unstable)"
+        - "Interface in src/db/repositories.ts"
+        - "Impl under src/db/kv/<name>.ts"
+        - "Factory wiring in src/db/factory.ts"
+
+    - id: "author-curriculum"
+      name: "Author a new curriculum"
+      tags: ["curriculum", "authoring", "yaml"]
+      bridge:
+        from:
+          label: "Read ALE's two examples; haven't authored one"
+          concepts: ["curriculum.config.yaml", "phases", "domains", "bridges"]
+          proficiency: "intermediate"
+        to:
+          label: "Can draft a curriculum for a subject you know"
+          concepts: ["bridge articulation", "phase boundaries", "domain granularity"]
+          proficiency: "intermediate"
+      key_concepts:
+        - "Start with the whole-curriculum bridge"
+        - "Let phases fall out of the bridge"
+        - "Domains = 1 week of coherent teaching"
+        - "Prerequisites make learning order explicit"

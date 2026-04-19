@@ -12,6 +12,15 @@ const EXAMPLE_DIR = join(
   "k8s-hybrid-cloud",
 );
 
+const LEARNING_ALE_DIR = join(
+  new URL(".", import.meta.url).pathname,
+  "..",
+  "..",
+  "config",
+  "examples",
+  "learning-ale",
+);
+
 describe("loadConfig", () => {
   describe("k8s-hybrid-cloud example", () => {
     it("should load system config correctly", async () => {
@@ -207,6 +216,47 @@ describe("loadConfig", () => {
       } finally {
         await Deno.remove(tmp, { recursive: true });
       }
+    });
+  });
+
+  describe("learning-ale example (new default)", () => {
+    it("loads cleanly and is the system default", async () => {
+      const config = await loadConfig(LEARNING_ALE_DIR);
+      assertEquals(config.curriculum.meta.id, "learning-ale");
+      assertEquals(config.curriculum.meta.language, "en");
+      assertEquals(config.curriculum.phases.length, 5);
+      assertEquals(config.curriculum.domains.length, 21);
+      assertEquals(config.system.mcp.transport, "stdio");
+    });
+
+    it("P1 domains share week 1 (compressed intro)", async () => {
+      const config = await loadConfig(LEARNING_ALE_DIR);
+      const p1 = config.curriculum.domains.filter((d) => d.phase === 1);
+      assertEquals(p1.length, 4);
+      for (const d of p1) {
+        assertEquals(d.week, 1);
+      }
+    });
+
+    it("every domain references real resource paths", async () => {
+      const config = await loadConfig(LEARNING_ALE_DIR);
+      for (const d of config.curriculum.domains) {
+        // Every domain in this course anchors its teaching in real code.
+        // Empty `resources` = no anchor = would-be regression.
+        if (d.resources.length === 0) {
+          throw new Error(
+            `Domain "${d.id}" has no resources; learning-ale expects every domain to point at code or docs`,
+          );
+        }
+      }
+    });
+
+    it("stretch domains cover the extend-ALE paths", async () => {
+      const config = await loadConfig(LEARNING_ALE_DIR);
+      const ids = config.curriculum.stretch.domains.map((d) => d.id);
+      assertEquals(ids.includes("contribute-mcp-tool"), true);
+      assertEquals(ids.includes("contribute-domain-module"), true);
+      assertEquals(ids.includes("author-curriculum"), true);
     });
   });
 });

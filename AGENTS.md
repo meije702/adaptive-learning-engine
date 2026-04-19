@@ -11,6 +11,10 @@ Related docs:
 - `docs/design-system.md` — visual design layering across ALE and Scrim:
   token vocabulary (Scrim), `--ale-*` alias layer, preset modules, per-course
   YAML, learner-scoped overlay with provenance, twelve fitness functions.
+- `docs/ale-context.md` — **living** module map + what's stable vs. in
+  motion. Read by the AI agent when generating content for the
+  `learning-ale` curriculum, and a useful quick-orientation for humans.
+  Update it when architecture shifts meaningfully.
 
 ---
 
@@ -75,6 +79,20 @@ Unstable persisted shapes use an explicit snapshot wrapper:
 - Conventional prefix: `refactor:`, `feat:`, `fix:`, `chore:`, `docs:`.
 - Footer: `Co-Authored-By: Claude <noreply@anthropic.com>` (see recent `git log`).
 - Small, focused commits. The recent refactor landed as one commit per work package — easy to revert individually.
+
+## Example configs
+
+Two examples live under `config/examples/`:
+
+- `learning-ale/` — **default** for fresh installs. A self-referential
+  course that teaches ALE's architecture using ALE itself. 21 domains, 5
+  phases, 18 weeks. See `docs/ale-context.md` for the agent's working
+  reference when generating content.
+- `k8s-hybrid-cloud/` — a richer domain-specific curriculum (CKA prep).
+  The "here's what a real-world curriculum looks like" reference.
+
+`src/config/loader.ts defaultConfigDir()` points at `learning-ale`.
+`ALE_CONFIG_DIR` env var overrides it.
 
 ## Gotchas
 
