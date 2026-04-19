@@ -377,11 +377,16 @@ create_feedback:
   description: "Schrijf feedback op een antwoord en update optioneel het competentieniveau"
   params:
     answerId: string
+    questionId: string
     score: "correct" | "partial" | "incorrect"
     explanation: string
     suggestedLevel: number
-    applyLevel: boolean
+    levelApplied: boolean
     improvements: string[]
+    feedUp?: string                 # three-component feedback (optional)
+    feedBack?: string
+    feedForward?: string
+    feedbackLevel?: "task" | "process" | "self_regulation"
   returns: Feedback
 ```
 

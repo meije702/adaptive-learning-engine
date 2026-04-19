@@ -48,11 +48,16 @@ The app loads `config/examples/k8s-hybrid-cloud/` by default.
 
 ## Use your own configuration
 
-Create a directory containing these three files:
+Create a directory containing these three required files:
 
-- `curriculum.config.yaml`
-- `learner.config.yaml`
-- `system.config.yaml`
+- `curriculum.config.yaml` — what is learned
+- `learner.config.yaml` — who is learning
+- `system.config.yaml` — how the system operates
+
+And an optional fourth file for per-course visual identity:
+
+- `theme.config.yaml` — preset + token overrides (see
+  [docs/design-system.md](./docs/design-system.md))
 
 Then point the app to that directory with `ALE_CONFIG_DIR`:
 
@@ -105,15 +110,24 @@ See `config/examples/` for a complete example.
 
 Read [DESIGN.md](./DESIGN.md) for the full design philosophy.
 
+Deeper design docs:
+
+- [docs/technical-design.md](./docs/technical-design.md) — full system
+  architecture, data flow, and integration points
+- [docs/SYSTEM.md](./docs/SYSTEM.md) — operational design, weekly cycle,
+  coaching behavior, retention model, intake flow
+- [docs/design-system.md](./docs/design-system.md) — visual design layering
+  across ALE and Scrim (tokens, aliases, presets, provenance)
+- [AGENTS.md](./AGENTS.md) — developer notes for any coding assistant working
+  in this repo (Deno tasks, conventions, gotchas)
+- [CLAUDE.md](./CLAUDE.md) — behavioural contract for the in-app coaching
+  agent persona
+
 Technical decisions are documented as ADRs:
 
 - [ADR-001: Data model & API](./docs/adr/001-data-model-api.md)
 - [ADR-002: Configuration-first design](./docs/adr/002-configuration-first.md)
 - [ADR-003: Bridge principle & intake](./docs/adr/003-bridge-principle-intake.md)
-
-For more specific and elaborate information about the operational design, weekly
-cycle, coaching behavior, retention model, and intake flow, see
-[docs/SYSTEM.md](./docs/SYSTEM.md).
 
 ## Core concept: everything is a bridge
 

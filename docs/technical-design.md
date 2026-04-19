@@ -68,49 +68,88 @@ tools -- it never accesses the database or filesystem directly.
 
 ```
 src/
-  main.ts                    Fresh app entrypoint
+  main.ts                    Fresh app entrypoint (middleware + fs routes)
   deno.json                  Dependencies and tasks
   config/
     loader.ts                YAML loading + Zod validation
-    schemas/                 Zod schemas for all config files
+    schemas/                 Zod schemas (system, curriculum, learner, theme)
   db/
     types.ts                 Core entity interfaces
     repositories.ts          Repository interfaces + input types
     factory.ts               Repository instantiation
     kv.ts                    Deno KV connection
     kv/                      KV implementations per entity
+  domain/                    Pure business rules (no IO)
+    calibration.ts           computeCalibrationDelta
+    wellbeing.ts             applyWellbeingTransition
+    feedback.ts              recordFeedbackAndProgress
+    evaluate_mc.ts           autoGradeMultipleChoice
+    spaced_repetition.ts     SM-2 math + pause decay
+    learner_theme.ts         Theme state machine + schema
+    errors.ts                DomainError hierarchy (Validation/NotFound/...)
+  analysis/
+    gap.ts                   Gap analysis pure computation
+    types.ts                 GapAnalysis / GapAnalysisSnapshot
   mcp/
     main.ts                  MCP server entrypoint (stdio)
-    server.ts                Tool definitions
+    server.ts                ~70-line registry; wires up tool modules
     handler.ts               Stdio transport layer
+    define_tool.ts           Typed defineTool<Schema> helper (MCP boundary)
     sdk_compat.js            Runtime bridge for MCP SDK imports under Deno
     sdk_compat.d.ts          Local types for the compat bridge
+    tools/                   Per-concern tool modules, each exporting register(ctx)
+      observe.ts, generate.ts, steer.ts, calibration.ts,
+      wellbeing.ts, gap.ts, intake.ts, scheduling.ts, theme.ts
+  obs/
+    logger.ts                Structured JSON-lines logger (stderr)
+    correlation.ts           AsyncLocalStorage correlation IDs
   scrim/
     validate.ts              SceneDocument validation wrapper
+    snapshot.ts              SceneDocumentSnapshot wrap/unwrap helpers
     language_reference.ts    Loads Scrim language ref for MCP
+  design/                    Visual design system (see docs/design-system.md)
+    tokens/aliases.css       --ale-* → --scrim-* alias layer (Layer 1.5)
+    tokens/aliases.ts        Parser + alias text for SSR
+    themes/                  Theme type, default/dark/high_contrast, merge, applier
+  api/
+    error.ts                 RFC 7807 problem responses + DomainError mapper
+    helpers.ts               parseJsonBody, jsonResponse
   routes/
+    _app.tsx                 Root layout; applies theme as inline style
     index.tsx                Dashboard
     today.tsx                Today view (ScrimPlayer or plain text)
     week/[weekNumber]/       Week detail view
     api/                     REST API routes
       evaluate.ts            Evaluator bridge endpoint
-      days/[dayContentId]/
-        interaction-log.ts   Interaction log persistence
-      weeks/, progress/, questions/, answers/, etc.
+      theme.ts               GET/PUT learner-scoped theme
+      wellbeing.ts, calibration.ts, intake/, weeks/, progress/, ...
   islands/
     ScrimPlayer.tsx          Preact island mounting Scrim runtime
+    ThemeSwitcher.tsx        Top-nav theme switcher (smoke test)
   components/
-  assets/
+  scripts/                   Deno CLI scripts wired into `deno task check:design`
+    check_no_scrim_vars.ts   Fitness #3 — no --scrim-* outside aliases.css
+    check_design_tokens.ts   Fitness #4/#12 — no hex/Tailwind in migrated paths
+  tasks/
+    manifest.ts              Scheduled-task manifest for the agent
+  test_helpers.ts
 config/
   examples/
     k8s-hybrid-cloud/        Complete working config example
       curriculum.config.yaml
       learner.config.yaml
       system.config.yaml
+      theme.config.yaml      Optional — per-course visual identity
+.design/
+  migration-remaining.txt    Path-granular allowlist for WP-D6 migration
 docs/
   SYSTEM.md                  Full operational design
+  technical-design.md        This file
+  design-system.md           Visual design layering (ALE × Scrim)
   research/learning-science.md
   adr/                       Architecture decision records
+AGENTS.md                    Dev notes for any coding assistant
+CLAUDE.md                    Behavioural contract for the coaching agent
 ```
 
 ### 2.3 Data model
@@ -166,7 +205,7 @@ interface DayContent {
   domainId: string;
   title: string;
   body: string; // text summary (always present)
-  sceneDocument?: unknown; // Scrim SceneDocument JSON (optional)
+  sceneDocument?: unknown; // SceneDocumentSnapshot (see below)
   createdAt: string;
   basedOn?: string[]; // IDs of answers this content reacts to
 }
@@ -175,6 +214,20 @@ interface DayContent {
 When `sceneDocument` is present, the frontend renders an interactive Scrim
 scene. When absent, `body` is rendered as plain text. This provides full
 backward compatibility.
+
+**Persistence wrapper.** `sceneDocument` is stored as a versioned snapshot:
+
+```typescript
+interface SceneDocumentSnapshot {
+  schemaVersion: 1;
+  document: unknown; // the raw Scrim SceneDocument
+}
+```
+
+All writers (`src/mcp/tools/generate.ts create_day_content`) wrap via
+`toSceneDocumentSnapshot`. All readers (route pages, MCP `get_scene_document`)
+normalise via `unwrapSceneDocument`, which tolerates legacy records that
+stored the raw document directly. See `src/scrim/snapshot.ts`.
 
 KV keys: `["days", weekNumber, dayOfWeek]`, `["days_by_id", id]`
 
@@ -577,7 +630,7 @@ progress and scheduling).
 | `create_week_plan`   | weekNumber, domainId, isStretchWeek, summary                                       | creates WeekPlan                                        |
 | `create_day_content` | weekNumber, dayOfWeek, type, domainId, title, body, sceneDocument?, basedOn?       | creates DayContent (validates SceneDocument if present) |
 | `create_questions`   | dayContentId, questions[] (with optional scrimCheckpoint)                          | creates Question entities                               |
-| `create_feedback`    | answerId, questionId, score, explanation, suggestedLevel, applyLevel, improvements | creates Feedback, optionally updates Progress           |
+| `create_feedback`    | answerId, questionId, score, explanation, suggestedLevel, levelApplied, improvements, feedUp?, feedBack?, feedForward?, feedbackLevel? | creates Feedback, optionally updates Progress when `levelApplied` is true |
 
 #### Steer tools (modify progress)
 
@@ -621,6 +674,16 @@ progress and scheduling).
 | Tool                  | Input | Effect                                          |
 | --------------------- | ----- | ----------------------------------------------- |
 | `get_scheduled_tasks` | none  | returns task manifest + learner schedule config |
+
+#### Theme tools
+
+| Tool         | Input                                                                | Effect                                                                                 |
+| ------------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `get_theme`  | none                                                                 | returns `{ active, learner }` — composed theme + stored `LearnerState.theme` if any    |
+| `set_theme`  | `{ source: "user", preset?, overrides? }` or `{ source: "revert" }`  | writes `LearnerState.theme` via the state-machine; `source:user` supersedes `ai_proposed`; `revert` rolls back one step |
+
+Layering and provenance for `LearnerState.theme` are documented separately —
+see `docs/design-system.md § Layer 4`.
 
 ### 4.3 Agent behavioral instructions
 
@@ -1085,6 +1148,13 @@ All endpoints return JSON. Error responses use RFC 7807 Problem Details.
 | ------ | ------------------ | --------------------------------- |
 | POST   | `/api/calibration` | Submit self-assessment prediction |
 
+### Theme
+
+| Method | Endpoint     | Description                                                                                           |
+| ------ | ------------ | ----------------------------------------------------------------------------------------------------- |
+| GET    | `/api/theme` | Returns `{ active, learner }` — composed active theme + the stored `LearnerState.theme` if any        |
+| PUT    | `/api/theme` | Set or revert the learner-scoped theme. See `docs/design-system.md § WP-D5` for the provenance rules. |
+
 ### Scrim integration
 
 | Method  | Endpoint                                  | Description                                                                                       |
@@ -1239,3 +1309,9 @@ server. No manual configuration needed when opening the project in Claude Code.
 | Calibration delta tracking                      | Enables metacognitive growth patterns without gamification; surfaced as self-knowledge                               |
 | Three-component feedback structure              | Optional fields preserve backward compatibility while enabling richer pedagogical feedback                           |
 | Feedback visibility gating                      | Assessment feedback hidden until configured time; enforces reflection gap between submission and results             |
+| Shared domain modules (`src/domain/`)           | Business rules extracted from MCP tools + REST handlers so both boundaries call the same function; prevents drift    |
+| MCP server split by concern (`src/mcp/tools/`)  | Per-concern modules registered by a ~70-line `server.ts`; typed `defineTool<Schema>` replaces the `any`-cast pattern |
+| Persistence snapshots for unstable shapes       | `SceneDocumentSnapshot`, `GapAnalysisSnapshot` wrap evolving payloads with `schemaVersion`; readers use `unwrap*`    |
+| Shared error taxonomy (`src/domain/errors.ts`)  | `DomainError` hierarchy; REST maps to RFC 7807, MCP maps to `txt({ error, code })`                                  |
+| Structured logging + correlation IDs            | `src/obs/logger.ts` JSON lines to stderr; `AsyncLocalStorage` propagates correlation across REST + MCP boundaries    |
+| Design-system layering (`docs/design-system.md`) | Scrim owns token vocabulary; ALE aliases into `--ale-*` (Layer 1.5); presets + course YAML + learner overlay compose |

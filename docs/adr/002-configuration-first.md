@@ -518,7 +518,7 @@ ai:
 
 # ── MCP Server ──────────────────────────────
 mcp:
-  transport: "sse" # "sse" | "stdio"
+  transport: "stdio" # only "stdio" is implemented (SSE was specced but never shipped; schema now rejects "sse")
   path: "/mcp" # endpoint path
 
 # ── Spaced Repetition ──────────────────────
