@@ -5,6 +5,13 @@ Aider, a new human contributor). The behavioural contract for the in-app
 coaching agent lives in `CLAUDE.md` — this file is only about *developing*
 the ALE, not about how the coaching persona should act with learners.
 
+Related docs:
+- `docs/SYSTEM.md` — full system design and learning-science rationale.
+- `docs/technical-design.md` — integration flows (ALE ↔ Scrim ↔ MCP ↔ Claude).
+- `docs/design-system.md` — visual design layering across ALE and Scrim:
+  token vocabulary (Scrim), `--ale-*` alias layer, preset modules, per-course
+  YAML, learner-scoped overlay with provenance, twelve fitness functions.
+
 ---
 
 ## Deno layout
