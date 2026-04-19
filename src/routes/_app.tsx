@@ -1,10 +1,13 @@
 import { define } from "../utils.ts";
+import { defaultTheme } from "../design/themes/default.ts";
+import { themeToInlineStyle } from "../design/themes/apply_to_root.ts";
 
 export default define.page(function App({ Component, url }) {
   const path = url.pathname;
+  const rootStyle = themeToInlineStyle(defaultTheme);
 
   return (
-    <html>
+    <html style={rootStyle}>
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
