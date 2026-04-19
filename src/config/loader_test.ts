@@ -125,4 +125,88 @@ describe("loadConfig", () => {
       Deno.env.delete("ALE_CONFIG_DIR");
     }
   });
+
+  describe("theme.config.yaml (optional)", () => {
+    it("loads the example (all-commented) theme as empty config", async () => {
+      const config = await loadConfig(EXAMPLE_DIR);
+      // All-commented YAML parses to null; loader treats it as {}.
+      assertEquals(config.theme, {});
+    });
+
+    it("returns {} when theme.config.yaml is absent", async () => {
+      // Borrow any directory that has the three required configs but no
+      // theme — use a temp dir copying the example and deleting theme.
+      const tmp = await Deno.makeTempDir();
+      try {
+        for (
+          const name of [
+            "system.config.yaml",
+            "curriculum.config.yaml",
+            "learner.config.yaml",
+          ]
+        ) {
+          await Deno.copyFile(
+            join(EXAMPLE_DIR, name),
+            join(tmp, name),
+          );
+        }
+        const config = await loadConfig(tmp);
+        assertEquals(config.theme, {});
+      } finally {
+        await Deno.remove(tmp, { recursive: true });
+      }
+    });
+
+    it("parses a real theme config with preset + overrides", async () => {
+      const tmp = await Deno.makeTempDir();
+      try {
+        for (
+          const name of [
+            "system.config.yaml",
+            "curriculum.config.yaml",
+            "learner.config.yaml",
+          ]
+        ) {
+          await Deno.copyFile(
+            join(EXAMPLE_DIR, name),
+            join(tmp, name),
+          );
+        }
+        await Deno.writeTextFile(
+          join(tmp, "theme.config.yaml"),
+          `preset: dark\noverrides:\n  color:\n    primary: "#8b5cf6"\n`,
+        );
+        const config = await loadConfig(tmp);
+        assertEquals(config.theme.preset, "dark");
+        assertEquals(config.theme.overrides?.color?.primary, "#8b5cf6");
+      } finally {
+        await Deno.remove(tmp, { recursive: true });
+      }
+    });
+
+    it("rejects invalid theme config (unknown preset)", async () => {
+      const tmp = await Deno.makeTempDir();
+      try {
+        for (
+          const name of [
+            "system.config.yaml",
+            "curriculum.config.yaml",
+            "learner.config.yaml",
+          ]
+        ) {
+          await Deno.copyFile(
+            join(EXAMPLE_DIR, name),
+            join(tmp, name),
+          );
+        }
+        await Deno.writeTextFile(
+          join(tmp, "theme.config.yaml"),
+          `preset: neon\n`,
+        );
+        await assertRejects(() => loadConfig(tmp), ConfigError);
+      } finally {
+        await Deno.remove(tmp, { recursive: true });
+      }
+    });
+  });
 });

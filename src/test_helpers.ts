@@ -38,6 +38,7 @@ export async function createTestKv(): Promise<
 
 export function createTestConfig(): AppConfig {
   return {
+    theme: {},
     system: {
       server: { port: 8000, base_url: "http://localhost:8000" },
       auth: { type: "none" },

@@ -1,0 +1,19 @@
+# Per-course visual identity (optional).
+#
+# Absent file ⇒ default preset, unmodified.
+#
+# See docs/design-system.md § Layer 3.
+
+# preset: one of "default", "dark", "high_contrast".
+# Absent ⇒ "default".
+# preset: dark
+
+# overrides: partial token values layered on top of the chosen preset.
+# Any shape matching ThemePartialSchema in src/config/schemas/theme.ts.
+# overrides:
+#   color:
+#     primary: "#8b5cf6"      # violet CKA accent
+#     primaryLight: "#ede9fe"
+#   font:
+#     family: "Inter, system-ui, sans-serif"
+#   radius: "8px"

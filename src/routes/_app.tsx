@@ -1,11 +1,18 @@
 import { define } from "../utils.ts";
-import { defaultTheme } from "../design/themes/default.ts";
 import { themeToInlineStyle } from "../design/themes/apply_to_root.ts";
+import { mergeTheme } from "../design/themes/merge.ts";
+import { presetFor } from "../design/themes/presets.ts";
 import { aliasesCss } from "../design/tokens/aliases.ts";
 
-export default define.page(function App({ Component, url }) {
+export default define.page(function App({ Component, url, state }) {
   const path = url.pathname;
-  const rootStyle = themeToInlineStyle(defaultTheme);
+  // Course-level theme composition: preset ← theme.config.yaml overrides.
+  // Learner-scoped overlay will be added in WP-D5.
+  const composedTheme = mergeTheme(
+    presetFor(state.config.theme.preset),
+    state.config.theme.overrides ?? {},
+  );
+  const rootStyle = themeToInlineStyle(composedTheme);
 
   return (
     <html style={rootStyle}>
