@@ -1,0 +1,41 @@
+/*
+ * ALE → Scrim token aliases (docs/design-system.md § Layer 1.5).
+ *
+ * This is the ONLY file in the ALE repo allowed to reference `--scrim-*`
+ * directly. Enforced by scripts/check_no_scrim_vars.ts.
+ *
+ * ALE chrome reads `var(--ale-*)`. Scrim internals continue to read
+ * `var(--scrim-*)`. When Scrim renames or adds a token, the token
+ * snapshot test fails first; then this file and the Theme type get
+ * updated together.
+ */
+:root {
+  /* Typography */
+  --ale-font-family: var(--scrim-font-family);
+  --ale-font-size: var(--scrim-font-size);
+  --ale-line-height: var(--scrim-line-height);
+  --ale-font-mono: var(--scrim-font-mono);
+
+  /* Color */
+  --ale-color-text: var(--scrim-color-text);
+  --ale-color-bg: var(--scrim-color-bg);
+  --ale-color-primary: var(--scrim-color-primary);
+  --ale-color-primary-light: var(--scrim-color-primary-light);
+  --ale-color-danger: var(--scrim-color-danger);
+  --ale-color-warning: var(--scrim-color-warning);
+  --ale-color-success: var(--scrim-color-success);
+  --ale-color-info: var(--scrim-color-info);
+  --ale-color-muted: var(--scrim-color-muted);
+  --ale-color-border: var(--scrim-color-border);
+
+  /* Spacing */
+  --ale-spacing-xs: var(--scrim-spacing-xs);
+  --ale-spacing-sm: var(--scrim-spacing-sm);
+  --ale-spacing-md: var(--scrim-spacing-md);
+  --ale-spacing-lg: var(--scrim-spacing-lg);
+  --ale-spacing-xl: var(--scrim-spacing-xl);
+
+  /* Surface */
+  --ale-radius: var(--scrim-radius);
+  --ale-shadow: var(--scrim-shadow);
+}

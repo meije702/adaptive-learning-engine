@@ -4,7 +4,8 @@
   ],
   "nodeModulesDir": "manual",
   "tasks": {
-    "check": "deno fmt --check . && deno lint . && deno check",
+    "check": "deno fmt --check . && deno lint . && deno check && deno task check:design",
+    "check:design": "deno run --allow-read scripts/check_no_scrim_vars.ts",
     "dev": "vite",
     "build": "vite build",
     "start": "deno task build && deno serve -A _fresh/server.js",
@@ -34,6 +35,7 @@
     "@std/assert": "jsr:@std/assert@^1",
     "@std/yaml": "jsr:@std/yaml@^1",
     "@std/path": "jsr:@std/path@^1",
+    "@std/fs": "jsr:@std/fs@^1",
     "@std/testing/bdd": "jsr:@std/testing@^1/bdd",
     "zod": "npm:zod@^3.24",
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1",

@@ -1,6 +1,7 @@
 import { define } from "../utils.ts";
 import { defaultTheme } from "../design/themes/default.ts";
 import { themeToInlineStyle } from "../design/themes/apply_to_root.ts";
+import { aliasesCss } from "../design/tokens/aliases.ts";
 
 export default define.page(function App({ Component, url }) {
   const path = url.pathname;
@@ -12,6 +13,7 @@ export default define.page(function App({ Component, url }) {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Adaptive Learning Engine</title>
+        <style>{aliasesCss}</style>
       </head>
       <body style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111827; background: #fafafa;">
         <nav style="background: white; border-bottom: 1px solid #e5e7eb; padding: 0 1rem;">
